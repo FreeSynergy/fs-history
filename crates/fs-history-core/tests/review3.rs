@@ -141,3 +141,50 @@ async fn the_cap_bounds_what_a_page_reads() {
     let read = rows.load(Ordering::SeqCst);
     assert!(read <= 50 + 10, "read {read} rows");
 }
+
+#[tokio::test]
+async fn a_forgotten_or_older_create_does_not_bring_a_deleted_object_back() {
+    // Forgotten: a later update stays blank.
+    let repo = repo().await;
+    repo.record(vec![act(1, 100, "Create", 1), act(2, 200, "Delete", 1)])
+        .await
+        .unwrap();
+    repo.forget(&EntryFilter {
+        object: Some(id(1001)),
+        to: Some(at(150)),
+        ..Default::default()
+    })
+    .await
+    .unwrap();
+    assert_eq!(
+        repo.record(vec![act(1, 100, "Create", 1)]).await.unwrap(),
+        [Outcome::Forgotten]
+    );
+    repo.record(vec![act(3, FUTURE, "Update", 1)])
+        .await
+        .unwrap();
+    let page = repo.timeline(&EntryFilter::default(), None).await.unwrap();
+    assert!(page.items.iter().all(blank), "{:?}", page.items);
+
+    // Older than the delete, delivered late: the same.
+    let repo = common::repo().await;
+    repo.record(vec![act(2, 200, "Delete", 1), act(1, 100, "Create", 1)])
+        .await
+        .unwrap();
+    repo.record(vec![act(3, 300, "Update", 1)]).await.unwrap();
+    let page = repo.timeline(&EntryFilter::default(), None).await.unwrap();
+    assert!(page.items.iter().filter(|e| e.kind == "Update").all(blank));
+
+    // A newer create does bring it back.
+    let repo = common::repo().await;
+    repo.record(vec![
+        act(1, 100, "Create", 1),
+        act(2, 200, "Delete", 1),
+        act(3, 300, "Create", 1),
+        act(4, 400, "Update", 1),
+    ])
+    .await
+    .unwrap();
+    let page = repo.timeline(&EntryFilter::default(), None).await.unwrap();
+    assert_eq!(page.items[0].name, "Meeting 1");
+}
