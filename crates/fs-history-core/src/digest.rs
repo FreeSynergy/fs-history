@@ -81,6 +81,8 @@ pub struct Cut {
     pub end: usize,
     /// Runs that go on in the next page because of the cap.
     pub continued: Vec<Pair>,
+    /// Entries are left for a next page (some may not have been read).
+    pub more: bool,
 }
 
 /// Where a page of at least `target` entries may end so that no run of one object and program
@@ -107,10 +109,38 @@ pub fn cut(
     let (mut j, mut forced, mut continued) = (end, false, Vec::<Pair>::new());
     loop {
         let Some(e) = entries.get(j) else {
-            return (exhausted || end == 0).then_some(Cut { end, continued });
+            if exhausted || end == 0 {
+                let more = end < entries.len();
+                return Some(Cut {
+                    end,
+                    continued,
+                    more,
+                });
+            }
+            if entries.len() < max {
+                return None;
+            }
+            // Read as much as the cap allows. A run on the page that the unread rows could still
+            // continue is flagged; this can flag a run that in fact ends here (a needless flag).
+            let read_to = entries[entries.len() - 1].at;
+            for (&(object, program), &l) in &last {
+                let pair = (object, program.to_string());
+                if l - read_to <= w && !continued.contains(&pair) {
+                    continued.push(pair);
+                }
+            }
+            return Some(Cut {
+                end,
+                continued,
+                more: true,
+            });
         };
         if end == 0 || e.at < entries[end - 1].at - w {
-            return Some(Cut { end, continued });
+            return Some(Cut {
+                end,
+                continued,
+                more: true,
+            });
         }
         let key = (e.object, e.program.as_str());
         if last.get(&key).is_some_and(|&l| l - e.at <= w) {

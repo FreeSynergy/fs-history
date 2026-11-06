@@ -6,7 +6,7 @@ use fs_store::{ObjectId, Query};
 
 use super::codec::{from_object, to_object};
 use super::handle::HistoryRepo;
-use super::query::{after, for_filter, for_lifecycle, for_object};
+use super::query::{after, for_filter, for_object};
 use crate::error::Result;
 use crate::model::{Cursor, Entry, EntryFilter};
 
@@ -33,12 +33,6 @@ impl HistoryRepo {
     /// The newest entry of an object, if there is one.
     pub(super) async fn latest_of(&self, object: ObjectId) -> Result<Option<Entry>> {
         Ok(self.rows(&for_object(object).limit(1)).await?.pop())
-    }
-
-    /// Whether the object's latest `Create` or `Delete` entry is a `Delete`.
-    pub(super) async fn is_deleted(&self, object: ObjectId) -> Result<bool> {
-        let latest = self.rows(&for_lifecycle(object)).await?;
-        Ok(latest.first().is_some_and(|e| e.kind == "Delete"))
     }
 
     /// Blank name and context of every entry of an object (it was deleted); the type stays.

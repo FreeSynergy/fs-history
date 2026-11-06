@@ -5,6 +5,7 @@
 
 mod codec;
 mod consts;
+mod deleted;
 mod digest;
 mod forget;
 mod handle;

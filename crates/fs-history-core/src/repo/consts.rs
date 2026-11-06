@@ -8,3 +8,4 @@ pub const ENTRY_TYPE: &str = "Activity";
 pub const TOMBSTONE_TYPE: &str = "Tombstone";
 pub(super) const ENTRY_CONTENT: &str = "application/vnd.freesynergy.history-entry+json";
 pub(super) const TOMBSTONE_CONTENT: &str = "application/vnd.freesynergy.history-tombstone+json";
+pub(super) const DELETED_TYPE: &str = "Deleted";

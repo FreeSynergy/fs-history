@@ -8,6 +8,7 @@ use fs_store::{Cond, ObjectId, Op, Order, Query, TimeField, Timestamp};
 use super::consts::ENTRY_TYPE;
 use crate::error::{Error, Result};
 use crate::model::{Cursor, Entry, EntryFilter};
+use crate::reads::normalize_type;
 
 /// Entries that pass `filter`, newest first, ties by id (descending).
 pub(super) fn for_filter(filter: &EntryFilter) -> Query {
@@ -21,10 +22,12 @@ pub(super) fn for_filter(filter: &EntryFilter) -> Query {
     if let Some(t) = f.to {
         q = q.time(TimeField::Published, Op::Lt, t);
     }
+    // The type is indexed normalised (case, prefix); the entry shows the original.
+    let object_type = normalize_type(&f.object_type);
     for (key, value) in [
         ("program", &f.program),
         ("person", &f.person),
-        ("objectType", &f.object_type),
+        ("objectType", &object_type),
     ] {
         if !value.is_empty() {
             q = q.with_index(key, value.as_str());
@@ -45,19 +48,6 @@ pub(super) fn for_object(object: ObjectId) -> Query {
         .of_type(ENTRY_TYPE)
         .with_index("object", object.to_string())
         .ordered(Order::PublishedDesc)
-}
-
-/// The newest `Create` or `Delete` of an object: tells whether it is deleted now.
-pub(super) fn for_lifecycle(object: ObjectId) -> Query {
-    let kind = |k: &str| Cond::Index {
-        key: "kind".into(),
-        op: Op::Eq,
-        value: k.into(),
-    };
-    for_object(object)
-        .or(kind("Create"))
-        .or(kind("Delete"))
-        .limit(1)
 }
 
 /// The cursor that continues after `e`.

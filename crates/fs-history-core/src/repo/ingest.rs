@@ -79,8 +79,11 @@ impl HistoryRepo {
         if entry.kind == "Delete" {
             entry.name.clear();
             entry.context.clear();
+            self.mark_deleted(entry.object).await?;
             self.blank_object(entry.object).await?;
-        } else if entry.kind != "Create" && self.is_deleted(entry.object).await? {
+        } else if entry.kind == "Create" {
+            self.mark_alive(entry.object).await?;
+        } else if self.is_deleted(entry.object).await? {
             entry.name.clear();
             entry.context.clear();
         }

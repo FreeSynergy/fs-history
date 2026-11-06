@@ -10,6 +10,7 @@ use serde_json::{Value, json};
 use super::consts::{ENTRY_CONTENT, ENTRY_TYPE};
 use crate::error::{Error, Result};
 use crate::model::Entry;
+use crate::reads::normalize_type;
 
 /// The store refuses empty index values, so an empty field is simply not indexed.
 pub(super) fn with_nonempty(o: StoredObject, key: &str, value: &str) -> StoredObject {
@@ -46,7 +47,7 @@ pub(super) fn to_object(e: &Entry) -> StoredObject {
         .with_index("object", e.object.to_string());
     let o = with_nonempty(o, "program", &e.program);
     let o = with_nonempty(o, "kind", &e.kind);
-    let o = with_nonempty(o, "objectType", &e.object_type);
+    let o = with_nonempty(o, "objectType", &normalize_type(&e.object_type));
     with_nonempty(o, "person", e.person())
 }
 

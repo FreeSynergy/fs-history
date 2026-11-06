@@ -37,7 +37,7 @@ impl HistoryRepo {
                 break c;
             }
         };
-        let next = (page.end < got.len()).then(|| cursor_of(&got[page.end - 1]));
+        let next = page.more.then(|| cursor_of(&got[page.end - 1]));
         got.truncate(page.end);
         Ok(Page {
             items: digest_page(&got, window_minutes, &page.continued),
