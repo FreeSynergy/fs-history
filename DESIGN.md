@@ -5,7 +5,22 @@
 
 ## State
 
-Version 0.1.0, being built. The State table is filled in as parts are finished.
+Version 0.1.0. No capnp server and no GUI.
+
+| Area | State |
+|---|---|
+| Entries: derived index, unlogged, no payload; timeline, get, filters, keyset paging | done |
+| Digest | done |
+| Forget with tombstones, past only, salted filter texts | done |
+| Observer over the port `ActivitySource`; hub adapter `fs-history-hub` against a real hub | done; at most 16 activities per pull until the hub's next tag |
+| `Relationship` and `SurveyResponse` never read | done |
+| Actor | empty; `originalActor` stays empty until the person releases it (strategy, in `hub.capnp`) |
+| Original time | receive time for now; `originalAt` comes with the next fs-hub tag |
+| A dead hub session | not reconnected; the host starts a new one |
+| capnp server | not built; thread 3 |
+| Tests | 45, real stores and a real hub |
+
+Checked by an independent reviewer over two rounds before the tag.
 
 ## Decisions (the owner may change them; all provisional)
 
