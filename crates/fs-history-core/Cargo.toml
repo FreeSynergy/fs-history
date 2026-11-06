@@ -1,0 +1,19 @@
+[package]
+name = "fs-history-core"
+description = "Program core of FreeSynergy history: a derived, local index of what happened across programs"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+fs-store = { git = "https://github.com/FreeSynergy/fs-store", tag = "v0.3.0" }
+fs-interfaces = { git = "https://github.com/FreeSynergy/fs-interfaces", tag = "v0.17.0" }
+serde_json = "1"
+chrono = { version = "0.4", default-features = false, features = ["std", "clock"] }
+thiserror = "2"
+async-trait = "0.1"
+tokio = { version = "1", features = ["sync"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }

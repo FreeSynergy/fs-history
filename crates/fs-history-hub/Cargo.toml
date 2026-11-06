@@ -1,0 +1,18 @@
+[package]
+name = "fs-history-hub"
+description = "Adapter from the FreeSynergy hub to the history core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+fs-history-core = { path = "../fs-history-core" }
+fs-hub-client = { git = "https://github.com/FreeSynergy/fs-hub", tag = "v0.2.0" }
+async-trait = "0.1"
+tokio = { version = "1", features = ["sync"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }
+tempfile = "3"
+fs-hub = { git = "https://github.com/FreeSynergy/fs-hub", tag = "v0.2.0" }
