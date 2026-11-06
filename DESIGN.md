@@ -18,7 +18,7 @@ Version 0.1.0. No capnp server and no GUI.
 | Original time | receive time for now; `originalAt` comes with the next fs-hub tag |
 | A dead hub session | not reconnected; the host starts a new one |
 | capnp server | not built; thread 3 |
-| Tests | 45, real stores and a real hub |
+| Tests | 45, real stores and a real hub; the 80 MiB test is `--ignored`, run before a tag |
 
 Checked by an independent reviewer over two rounds before the tag.
 
