@@ -12,7 +12,6 @@ const NOTES: usize = 80;
 const MIB: usize = 1 << 20;
 
 #[tokio::test]
-#[ignore = "heavy: 80 MiB through a real hub; run with --ignored before a tag"]
 async fn eighty_one_mib_notes_do_not_stick_the_ingest() {
     let dir = tempfile::tempdir().unwrap();
     let socket = dir.path().join("run/freesynergy/hub.sock");
