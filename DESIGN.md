@@ -1,7 +1,7 @@
 # fs-history – Design
 
 `fs-history` observes what happens across programs (ADR 0020). This repo holds the **program core**, no GUI. Contract:
-`history.capnp` in `fs-interfaces` v0.17.0 (draft, provisional). Program docs: `fs-documentation/docs/en/programs/apps/history/`.
+`history.capnp` in `fs-interfaces` v0.20.0 or later (draft, provisional). Program docs: `fs-documentation/docs/en/programs/apps/history/`.
 
 ## State
 
@@ -25,13 +25,16 @@ The hub's `Activity.actor` is the program name and `at` is when the hub applied 
 * Local to this person. No sharing and no group view in this version: it comes with the sharing interface.
 * `Relationship` is never read (sprint rule, role privacy). `reads` is an explicit default list without it, and a constructor refuses a list that names it. Survey answers (`SurveyResponse`) are not read either.
 * Sensitive objects never arrive (ADR 0029). The hub reports an object that became sensitive as a `Delete`, so **on `Delete` all entries of that object lose `name` and `context`**, and `objectType` stays. A delete therefore also removes the name from the history; provisional, because the two cases cannot be told apart.
-* `forget(filter)` removes matching entries and stores a tombstone: the removed activity ids and the filter. Ingest checks both, so a redelivery after a crash and a late push that falls into a forgotten range stay out. Tombstones are unlogged too. "For good" is this index only; the hub's log is not touched, and the interface must say so. An empty filter is refused, and all-zero values count as unset.
+* `forget(filter)` removes the matching entries and stores a tombstone: the forget time, the removed activity ids, the removed object ids, and the filter. **Forgetting covers the past only.** An activity counts as forgotten if its id was removed, or if its `at` is at or before the forget time and it matches the filter or names a removed object; later activities are recorded again. While `at` is the hub's receive time, a late push gets a later time and comes back; that goes away once the hub delivers the original time.
+* Filter texts in a tombstone are salted hashes (SHA-256, a random salt per tombstone), so a forgotten project name is not kept readable. Stated limit: a guessed value can still be tested. Forgetting happens in this index only; the hub's log is not touched, and the interface must say so. An empty filter is refused, and all-zero values count as unset.
+* `Update` after `Delete` with no new `Create` stays blank. An `Undo` is not handled, since the hub's log has none.
+* Types are compared normalised (case, `as:` prefix). A log-only verb of unknown type is kept only from a source that filters types itself (`ActivitySource::filters_types`, true for the hub).
 
 ### Ingest
 Port `ActivitySource` (Strategy): `pull(limit) -> Batch { items: Vec<SourceActivity>, last, more }`, `ack(last)`. `SourceActivity` is a plain value with the summary fields, so the core does not know the hub. `Observer::run_once` (Template method): pull, drop what tombstones say, write, ack only after the write; idempotent by activity id, so redelivery changes nothing. `Observer::catch_up` loops while `more`. The payload is not read or kept.
 
 ### Digest
-A pure function: entries newest first → grouped when object and program are equal and the gap between neighbours is at most `windowMinutes`. Paged over entries, so one group is never split across pages without saying so: a page ends only at a group boundary.
+A pure function: entries newest first → grouped when object and program are equal and the gap between neighbours is at most `windowMinutes`. Paged by keyset. A page ends where no run of one object and program crosses. Over 10 000 entries a run is cut, and `DigestEntry.continues` says so.
 
 ### Feed
 `added` and `forgotten` through `tokio::sync::broadcast`, filtered per subscription; dropping the guard unsubscribes. In-process only, the RPC server comes from thread 3.
