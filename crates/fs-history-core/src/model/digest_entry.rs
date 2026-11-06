@@ -15,4 +15,6 @@ pub struct DigestEntry {
     pub count: u32,
     /// Each verb once, in order of first appearance (earliest first).
     pub kinds: Vec<String>,
+    /// Cut off here because the run is very long; the next page goes on with it.
+    pub continues: bool,
 }

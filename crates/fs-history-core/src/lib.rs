@@ -36,7 +36,7 @@ pub use model::{
     Cursor, DigestEntry, Entry, EntryFilter, LOG_ONLY_KINDS, Page, SourceActivity, Timestamp,
 };
 pub use observer::{Observer, RunReport};
-pub use reads::{DEFAULT_READS, NEVER_READ, Reads};
+pub use reads::{DEFAULT_READS, NEVER_READ, Reads, is_never_read, normalize_type, strip_namespace};
 pub use repo::{ENTRY_TYPE, HistoryRepo, Outcome, TOMBSTONE_TYPE};
 pub use source::{ActivitySource, Batch};
 pub use traits::History;

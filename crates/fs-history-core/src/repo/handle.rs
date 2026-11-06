@@ -18,6 +18,7 @@ pub struct HistoryRepo {
     pub(super) objects: Arc<dyn UnloggedObjects>,
     pub(super) reads: Arc<dyn ObjectQuery>,
     pub(super) page_size: usize,
+    pub(super) max_page: usize,
     pub(super) feed: Feed,
     /// Serialises the writes that read first (ingest, blanking, forget).
     pub(super) lock: Arc<Mutex<()>>,
@@ -31,6 +32,7 @@ impl HistoryRepo {
             objects,
             reads,
             page_size: 100,
+            max_page: crate::digest::MAX_PAGE_ENTRIES,
             feed: Feed::default(),
             lock: Arc::new(Mutex::new(())),
         }
@@ -40,6 +42,13 @@ impl HistoryRepo {
     #[must_use]
     pub fn with_page_size(mut self, n: usize) -> Self {
         self.page_size = n.max(1);
+        self
+    }
+
+    /// Most entries one digest page may hold (default 10 000); a longer run is cut and flagged.
+    #[must_use]
+    pub fn with_digest_cap(mut self, n: usize) -> Self {
+        self.max_page = n.max(1);
         self
     }
 

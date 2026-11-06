@@ -19,6 +19,10 @@ use crate::unsupported::not_possible;
 pub trait History: Send + Sync {
     /// What this provider can do, per capability id.
     fn capabilities(&self) -> Capabilities;
+    /// The provider rule's report (`supportReport`): every capability with a reason where not offered.
+    async fn support_report(&self) -> Result<Capabilities> {
+        Ok(self.capabilities())
+    }
     /// `history.read`: entries that pass `filter`, newest first, one page.
     async fn timeline(&self, filter: &EntryFilter, cursor: Option<&Cursor>) -> Result<Page<Entry>>;
     /// `history.read`: one entry by activity id.

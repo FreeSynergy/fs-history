@@ -5,6 +5,8 @@
 
 use fs_store::ObjectId;
 
+use crate::reads::normalize_type;
+
 use super::entry::{Entry, Timestamp};
 
 /// All members optional; unset (`None`, empty text) means no restriction; combined with AND.
@@ -53,7 +55,8 @@ impl EntryFilter {
             && f.to.is_none_or(|t| e.at < t)
             && text(&f.program, &e.program)
             && (f.person.is_empty() || f.person == e.person())
-            && text(&f.object_type, &e.object_type)
+            && (f.object_type.is_empty()
+                || normalize_type(&f.object_type) == normalize_type(&e.object_type))
             && text(&f.context, &e.context)
             && f.object.is_none_or(|o| o == e.object)
     }

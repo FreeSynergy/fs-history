@@ -25,6 +25,11 @@ pub struct Batch {
 pub trait ActivitySource: Send + Sync {
     /// Up to `limit` activities after the acknowledged position.
     async fn pull(&self, limit: u32) -> Result<Batch>;
+    /// Whether the source delivers only types history asked for (the hub does). A log-only verb
+    /// of unknown type is kept only from such a source.
+    fn filters_types(&self) -> bool {
+        false
+    }
     /// Everything up to `last` is stored; do not deliver it again.
     async fn ack(&self, last: ObjectId) -> Result<()>;
 }

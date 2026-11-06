@@ -12,6 +12,7 @@ mod ingest;
 mod provide;
 mod query;
 mod rows;
+mod sealed;
 mod timeline;
 mod tombstone;
 

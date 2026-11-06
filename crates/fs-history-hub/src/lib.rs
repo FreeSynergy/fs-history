@@ -15,4 +15,4 @@ mod map;
 mod source;
 
 pub use manifest::{PROGRAM, manifest, manifest_with};
-pub use source::HubSource;
+pub use source::{DEFAULT_MAX_BATCH, HubSource};

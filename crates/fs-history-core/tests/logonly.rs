@@ -35,7 +35,9 @@ async fn filled_from_the_latest_entry() {
 #[tokio::test]
 async fn none_known_leaves_the_fields_empty() {
     let repo = repo().await;
-    repo.record(vec![bare_invite(1, 100, 9)]).await.unwrap();
+    repo.record_filtered(vec![bare_invite(1, 100, 9)])
+        .await
+        .unwrap();
     let e = repo.get(id(1)).await.unwrap().unwrap();
     assert_eq!(e.kind, "Invite");
     assert!(

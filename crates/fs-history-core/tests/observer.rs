@@ -2,6 +2,7 @@
 
 mod common;
 
+use std::sync::Arc;
 use std::sync::atomic::Ordering;
 
 use common::{Scripted, act, id, numbers, setup};
@@ -84,4 +85,27 @@ async fn forgotten_activities_are_counted_and_kept_out() {
     source.rewind();
     let report = observer.run_once().await.unwrap();
     assert_eq!((report.stored, report.forgotten), (0, 1));
+}
+
+/// A source that always says "more" and never moves.
+struct Stuck;
+
+#[async_trait::async_trait]
+impl fs_history_core::ActivitySource for Stuck {
+    async fn pull(&self, _: u32) -> fs_history_core::Result<fs_history_core::Batch> {
+        Ok(fs_history_core::Batch {
+            items: vec![],
+            last: None,
+            more: true,
+        })
+    }
+    async fn ack(&self, _: fs_store::ObjectId) -> fs_history_core::Result<()> {
+        Ok(())
+    }
+}
+
+#[tokio::test]
+async fn catch_up_errors_out_when_there_is_no_progress() {
+    let observer = Observer::new(common::repo().await, Arc::new(Stuck));
+    assert!(matches!(observer.catch_up().await, Err(Error::Source(_))));
 }

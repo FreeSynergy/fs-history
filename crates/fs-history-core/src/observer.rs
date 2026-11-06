@@ -6,7 +6,9 @@
 
 use std::sync::Arc;
 
-use crate::error::Result;
+use fs_store::ObjectId;
+
+use crate::error::{Error, Result};
 use crate::repo::{HistoryRepo, Outcome};
 use crate::source::ActivitySource;
 
@@ -71,30 +73,47 @@ impl Observer {
     /// Pull one batch, record it, then acknowledge. If recording or acknowledging fails, nothing
     /// is lost: the source delivers the batch again and the second recording changes nothing.
     pub async fn run_once(&self) -> Result<RunReport> {
+        Ok(self.step().await?.0)
+    }
+
+    async fn step(&self) -> Result<(RunReport, Option<ObjectId>)> {
         let batch = self.source.pull(self.batch).await?;
         let mut report = RunReport {
             more: batch.more,
             ..RunReport::default()
         };
-        for outcome in self.repo.record(batch.items).await? {
+        let outcomes = if self.source.filters_types() {
+            self.repo.record_filtered(batch.items).await?
+        } else {
+            self.repo.record(batch.items).await?
+        };
+        for outcome in outcomes {
             report.add(outcome);
         }
         if let Some(last) = batch.last {
             self.source.ack(last).await?;
         }
-        Ok(report)
+        Ok((report, batch.last))
     }
 
-    /// Run until the source has nothing more; the reports are added up.
+    /// Run until the source has nothing more; the reports are added up. A source that says "more"
+    /// without moving its position is an error, not an endless loop.
     pub async fn catch_up(&self) -> Result<RunReport> {
         let mut total = RunReport::default();
+        let mut previous = None;
         loop {
-            let one = self.run_once().await?;
+            let (one, last) = self.step().await?;
             let more = one.more;
             total.merge(one);
             if !more {
                 return Ok(total);
             }
+            if last.is_none() || last == previous {
+                return Err(Error::Source(
+                    "the source has more but made no progress".into(),
+                ));
+            }
+            previous = last;
         }
     }
 }

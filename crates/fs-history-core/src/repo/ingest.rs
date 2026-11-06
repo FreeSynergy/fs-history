@@ -1,14 +1,16 @@
 //! Recording activities delivered by a source.
 //!
-//! Pattern: Template method (the fixed order of checks) — refuse never-read types, skip what is
-//! stored, fill log-only verbs from the object's latest entry, blank on delete, skip what was
-//! forgotten, then write. Idempotent by activity id, so a redelivery changes nothing.
+//! Pattern: Template method (the fixed order of checks) — normalise and refuse never-read types,
+//! skip what is stored, fill log-only verbs from the object's latest entry, decide on forgetting
+//! while nothing is cleared yet, then blank (delete, or a change after a delete) and write.
+//! Idempotent by activity id, so a redelivery changes nothing.
 
 use super::codec::to_object;
 use super::handle::HistoryRepo;
+use super::tombstone::Tombstone;
 use crate::error::Result;
 use crate::model::{Entry, SourceActivity};
-use crate::reads::NEVER_READ;
+use crate::reads::{is_never_read, strip_namespace};
 
 /// What happened to one delivered activity.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -17,20 +19,34 @@ pub enum Outcome {
     Stored,
     /// Already there (a redelivery).
     Duplicate,
-    /// Its id or its filter was forgotten.
+    /// Its id, its object or its filter was forgotten.
     Forgotten,
-    /// Of a type that is never read.
+    /// Of a type that is never read, or of an unknown type from a source that does not filter.
     Refused,
 }
 
 impl HistoryRepo {
-    /// Record `items` in order; returns one outcome per item.
+    /// Record `items` in order from a source that does not filter types: a log-only verb whose
+    /// type stays unknown is refused.
     pub async fn record(&self, items: Vec<SourceActivity>) -> Result<Vec<Outcome>> {
+        self.record_from(items, false).await
+    }
+
+    /// Record `items` from a source that delivers only the types asked for (`filters_types`).
+    pub async fn record_filtered(&self, items: Vec<SourceActivity>) -> Result<Vec<Outcome>> {
+        self.record_from(items, true).await
+    }
+
+    async fn record_from(
+        &self,
+        items: Vec<SourceActivity>,
+        filtered: bool,
+    ) -> Result<Vec<Outcome>> {
         let _guard = self.lock.lock().await;
-        let filters = self.forgotten_filters().await?;
+        let tombs = self.tombstones().await?;
         let mut out = Vec::with_capacity(items.len());
         for item in items {
-            out.push(self.record_one(item, &filters).await?);
+            out.push(self.record_one(item, &tombs, filtered).await?);
         }
         Ok(out)
     }
@@ -38,9 +54,10 @@ impl HistoryRepo {
     async fn record_one(
         &self,
         item: SourceActivity,
-        filters: &[crate::model::EntryFilter],
+        tombs: &[Tombstone],
+        filtered: bool,
     ) -> Result<Outcome> {
-        if NEVER_READ.contains(&item.object_type.as_str()) {
+        if is_never_read(&item.object_type) {
             return Ok(Outcome::Refused);
         }
         if self.objects.read_unlogged(item.id).await?.is_some() {
@@ -48,15 +65,26 @@ impl HistoryRepo {
         }
         let log_only = item.is_log_only();
         let mut entry = item.into_entry();
+        entry.object_type = strip_namespace(&entry.object_type).to_string();
         if log_only {
             self.fill_from_latest(&mut entry).await?;
         }
+        if is_never_read(&entry.object_type)
+            || (log_only && !filtered && entry.object_type.is_empty())
+        {
+            return Ok(Outcome::Refused);
+        }
+        // Forgetting is decided before anything is cleared: a delete must not hide its context.
+        let forgotten = tombs.iter().any(|t| t.hides(&entry)) || self.was_removed(entry.id).await?;
         if entry.kind == "Delete" {
             entry.name.clear();
             entry.context.clear();
             self.blank_object(entry.object).await?;
+        } else if entry.kind != "Create" && self.is_deleted(entry.object).await? {
+            entry.name.clear();
+            entry.context.clear();
         }
-        if filters.iter().any(|f| f.matches(&entry)) || self.was_removed(entry.id).await? {
+        if forgotten {
             return Ok(Outcome::Forgotten);
         }
         self.objects.put_unlogged(to_object(&entry)).await?;

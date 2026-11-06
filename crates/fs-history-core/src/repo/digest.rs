@@ -6,7 +6,7 @@
 
 use super::handle::HistoryRepo;
 use super::query::cursor_of;
-use crate::digest::{cut, digest};
+use crate::digest::{cut, digest_page};
 use crate::error::Result;
 use crate::model::{Cursor, DigestEntry, EntryFilter, Page};
 
@@ -19,20 +19,28 @@ impl HistoryRepo {
         cursor: Option<&Cursor>,
     ) -> Result<Page<DigestEntry>> {
         let mut got = Vec::new();
-        let end = loop {
+        let page = loop {
+            // Keyset per chunk: a concurrent insert cannot shift what was already read.
+            let after = got.last().map(cursor_of).or_else(|| cursor.cloned());
             let chunk = self
-                .page_rows(filter, cursor, self.page_size, got.len())
+                .page_rows(filter, after.as_ref(), self.page_size, 0)
                 .await?;
             let exhausted = chunk.len() < self.page_size;
             got.extend(chunk);
-            if let Some(k) = cut(&got, self.page_size, window_minutes, exhausted) {
-                break k;
+            if let Some(c) = cut(
+                &got,
+                self.page_size,
+                window_minutes,
+                exhausted,
+                self.max_page,
+            ) {
+                break c;
             }
         };
-        let next = (end < got.len()).then(|| cursor_of(&got[end - 1]));
-        got.truncate(end);
+        let next = (page.end < got.len()).then(|| cursor_of(&got[page.end - 1]));
+        got.truncate(page.end);
         Ok(Page {
-            items: digest(&got, window_minutes),
+            items: digest_page(&got, window_minutes, &page.continued),
             next,
         })
     }

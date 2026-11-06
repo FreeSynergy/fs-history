@@ -96,3 +96,19 @@ async fn a_subscription_hears_only_its_filter_and_dropping_it_unsubscribes() {
     drop(everything);
     repo.record(vec![act(3, 300, "Update", 1)]).await.unwrap(); // nobody listening: no error
 }
+
+#[tokio::test]
+async fn the_support_report_lists_the_capabilities() {
+    let repo = repo().await;
+    let report = History::support_report(&repo).await.unwrap();
+    assert_eq!(report.entries().len(), 5);
+    assert!(report.is_supported("history.forget"));
+    // A provider that only reads still has the method.
+    let p: Arc<dyn History> = Arc::new(ReadOnly);
+    assert!(
+        p.support_report()
+            .await
+            .unwrap()
+            .is_supported("history.read")
+    );
+}

@@ -47,6 +47,19 @@ pub(super) fn for_object(object: ObjectId) -> Query {
         .ordered(Order::PublishedDesc)
 }
 
+/// The newest `Create` or `Delete` of an object: tells whether it is deleted now.
+pub(super) fn for_lifecycle(object: ObjectId) -> Query {
+    let kind = |k: &str| Cond::Index {
+        key: "kind".into(),
+        op: Op::Eq,
+        value: k.into(),
+    };
+    for_object(object)
+        .or(kind("Create"))
+        .or(kind("Delete"))
+        .limit(1)
+}
+
 /// The cursor that continues after `e`.
 pub(super) fn cursor_of(e: &Entry) -> Cursor {
     Cursor(format!("{}:{}", e.at.timestamp_micros(), e.id))
