@@ -561,6 +561,9 @@ dependencies = [
  "fs-history-core",
  "fs-hub",
  "fs-hub-client",
+ "fs-store 0.2.0",
+ "fs-store 0.3.0",
+ "serde_json",
  "tempfile",
  "tokio",
 ]
