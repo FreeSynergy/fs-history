@@ -5,7 +5,7 @@ mod common;
 use common::{act, setup};
 use fs_objects::ActivityFilter;
 use fs_objects::Query;
-use fs_objects::traits::{ActivityLog, ObjectQuery};
+use fs_objects::traits::{ActivityLog, UnloggedObjects};
 
 #[tokio::test]
 async fn raw_stored_json_holds_only_the_summary_and_the_log_stays_empty() {
@@ -13,7 +13,10 @@ async fn raw_stored_json_holds_only_the_summary_and_the_log_stays_empty() {
     let items = vec![act(1, 100, "Create", 1), act(2, 200, "Update", 1)];
     repo.record(items).await.unwrap();
 
-    let stored = store.query(&Query::new()).await.unwrap();
+    let stored = store
+        .query_unlogged(&Query::new(), &[fs_history_core::ENTRY_TYPE])
+        .await
+        .unwrap();
     assert_eq!(stored.len(), 2);
     for o in &stored {
         let raw = serde_json::to_value(o).unwrap();

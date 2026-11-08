@@ -5,7 +5,7 @@ mod common;
 use common::{act, at, id, repo, setup};
 use fs_history_core::{EntryFilter, Outcome};
 use fs_objects::Query;
-use fs_objects::traits::ObjectQuery;
+use fs_objects::traits::UnloggedObjects;
 
 /// Year 2096: after any forget made by a test run.
 const FUTURE: i64 = 4_000_000_000;
@@ -86,7 +86,13 @@ async fn filter_texts_are_not_readable_in_the_tombstone() {
     };
     repo.forget(&filter).await.unwrap();
     let tombstones = Query::new().of_type(fs_history_core::TOMBSTONE_TYPE);
-    let raw = serde_json::to_string(&store.query(&tombstones).await.unwrap()).unwrap();
+    let raw = serde_json::to_string(
+        &store
+            .query_unlogged(&tombstones, &[fs_history_core::TOMBSTONE_TYPE])
+            .await
+            .unwrap(),
+    )
+    .unwrap();
     for text in ["work", "calendar", "ada", "Event", "event"] {
         assert!(!raw.contains(text), "{text} is readable in {raw}");
     }
