@@ -13,7 +13,7 @@ use fs_objects::{ObjectId, Timestamp, TursoStore};
 /// A history over a fresh in-memory store, and the store itself (to look at what is really kept).
 pub async fn setup() -> (HistoryRepo, Arc<TursoStore>) {
     let store = Arc::new(TursoStore::open_in_memory().await.unwrap());
-    (HistoryRepo::new(store.clone(), store.clone()), store)
+    (HistoryRepo::new(store.clone()), store)
 }
 
 pub async fn repo() -> HistoryRepo {

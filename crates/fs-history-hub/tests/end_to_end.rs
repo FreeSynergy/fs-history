@@ -71,7 +71,7 @@ async fn two_programs_write_and_the_timeline_shows_them_without_content() {
     // History: its own store, registered with its own manifest, observing through the hub.
     let (h_session, _own) = program(&dir, manifest()).await;
     let store = Arc::new(fs_objects::TursoStore::open_in_memory().await.unwrap());
-    let repo = HistoryRepo::new(store.clone(), store.clone());
+    let repo = HistoryRepo::new(store.clone());
     let observer = Observer::new(repo.clone(), Arc::new(HubSource::new(h_session)));
     let report = observer.catch_up().await.unwrap();
     assert_eq!(report.stored, 3);

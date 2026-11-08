@@ -59,8 +59,8 @@ impl HistoryRepo {
     /// All tombstones.
     pub(super) async fn tombstones(&self) -> Result<Vec<Tombstone>> {
         let all = self
-            .reads
-            .query(&Query::new().of_type(TOMBSTONE_TYPE))
+            .objects
+            .query_unlogged(&Query::new().of_type(TOMBSTONE_TYPE), &[TOMBSTONE_TYPE])
             .await?;
         Ok(all
             .iter()
@@ -84,7 +84,12 @@ impl HistoryRepo {
     pub(super) async fn was_removed(&self, id: ObjectId) -> Result<bool> {
         let q = Query::new()
             .of_type(TOMBSTONE_TYPE)
-            .with_index("removed", id.to_string());
-        Ok(self.reads.count(&q).await? > 0)
+            .with_index("removed", id.to_string())
+            .limit(1);
+        Ok(!self
+            .objects
+            .query_unlogged(&q, &[TOMBSTONE_TYPE])
+            .await?
+            .is_empty())
     }
 }

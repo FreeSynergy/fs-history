@@ -20,7 +20,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
     let store = Arc::new(TursoStore::open_in_memory().await?);
-    let repo = HistoryRepo::new(store.clone(), store);
+    let repo = HistoryRepo::new(store.clone());
     let observer = Observer::new(repo.clone(), Arc::new(HubSource::new(session)));
     println!("recorded: {:?}", observer.catch_up().await?);
     for e in repo.timeline(&EntryFilter::default(), None).await?.items {

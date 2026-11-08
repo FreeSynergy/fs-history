@@ -5,6 +5,7 @@
 use fs_objects::{ObjectId, Query};
 
 use super::codec::{from_object, to_object};
+use super::consts::ENTRY_TYPE;
 use super::handle::HistoryRepo;
 use super::query::{after, for_filter, for_object};
 use crate::error::Result;
@@ -12,7 +13,12 @@ use crate::model::{Cursor, Entry, EntryFilter};
 
 impl HistoryRepo {
     pub(super) async fn rows(&self, q: &Query) -> Result<Vec<Entry>> {
-        self.reads.query(q).await?.iter().map(from_object).collect()
+        self.objects
+            .query_unlogged(q, &[ENTRY_TYPE])
+            .await?
+            .iter()
+            .map(from_object)
+            .collect()
     }
 
     /// `limit` entries of the filter after the cursor, skipping `offset` of them.

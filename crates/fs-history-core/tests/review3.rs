@@ -8,8 +8,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use async_trait::async_trait;
 use common::{act, at, id, repo};
 use fs_history_core::{EntryFilter, HistoryRepo, Outcome};
-use fs_objects::traits::ObjectQuery;
-use fs_objects::{Query, StoredObject, TursoStore};
+use fs_objects::traits::UnloggedObjects;
+use fs_objects::{ObjectId, Query, StoredObject, TursoStore};
 
 const FUTURE: i64 = 4_000_000_000;
 
@@ -103,14 +103,24 @@ async fn type_filters_match_whatever_the_spelling() {
 struct Counting(Arc<TursoStore>, Arc<AtomicUsize>);
 
 #[async_trait]
-impl ObjectQuery for Counting {
-    async fn query(&self, q: &Query) -> fs_objects::Result<Vec<StoredObject>> {
-        let rows = self.0.query(q).await?;
+impl UnloggedObjects for Counting {
+    async fn put_unlogged(&self, o: StoredObject) -> fs_objects::Result<()> {
+        self.0.put_unlogged(o).await
+    }
+    async fn read_unlogged(&self, id: ObjectId) -> fs_objects::Result<Option<StoredObject>> {
+        self.0.read_unlogged(id).await
+    }
+    async fn delete_unlogged(&self, id: ObjectId) -> fs_objects::Result<()> {
+        self.0.delete_unlogged(id).await
+    }
+    async fn query_unlogged(
+        &self,
+        q: &Query,
+        types: &[&str],
+    ) -> fs_objects::Result<Vec<StoredObject>> {
+        let rows = self.0.query_unlogged(q, types).await?;
         self.1.fetch_add(rows.len(), Ordering::SeqCst);
         Ok(rows)
-    }
-    async fn count(&self, q: &Query) -> fs_objects::Result<usize> {
-        self.0.count(q).await
     }
 }
 
@@ -118,7 +128,7 @@ impl ObjectQuery for Counting {
 async fn the_cap_bounds_what_a_page_reads() {
     let store = Arc::new(TursoStore::open_in_memory().await.unwrap());
     let rows = Arc::new(AtomicUsize::new(0));
-    let writer = HistoryRepo::new(store.clone(), store.clone());
+    let writer = HistoryRepo::new(store.clone());
     writer
         .record(
             (1..=500)
@@ -127,7 +137,7 @@ async fn the_cap_bounds_what_a_page_reads() {
         )
         .await
         .unwrap();
-    let repo = HistoryRepo::new(store.clone(), Arc::new(Counting(store, rows.clone())))
+    let repo = HistoryRepo::new(Arc::new(Counting(store, rows.clone())))
         .with_page_size(10)
         .with_digest_cap(50);
     let page = repo

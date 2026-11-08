@@ -26,7 +26,7 @@ fn activity(kind: &str, object: ObjectId, secs: i64, name: &str) -> SourceActivi
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     let store = Arc::new(TursoStore::open_in_memory().await?);
-    let history = HistoryRepo::new(store.clone(), store);
+    let history = HistoryRepo::new(store.clone());
 
     let meeting = ObjectId::new();
     history

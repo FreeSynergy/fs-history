@@ -38,7 +38,7 @@ async fn eighty_one_mib_notes_do_not_stick_the_ingest() {
 
     let h_session = connect(&socket).await;
     let own = Arc::new(fs_objects::TursoStore::open_in_memory().await.unwrap());
-    let repo = HistoryRepo::new(own.clone(), own);
+    let repo = HistoryRepo::new(own.clone());
 
     // Asking for 100 at a time is too large for the hub; it says so, and says what to do.
     let greedy = HubSource::new(h_session).with_max_batch(100);
