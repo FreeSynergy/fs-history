@@ -6,7 +6,7 @@ use fs_history_core::{EntryFilter, HistoryRepo, Observer};
 use fs_history_hub::{HubSource, manifest};
 use fs_hub::{Config, Daemon};
 use fs_hub_client::{HubStatus, Manifest, connect_at};
-use fs_objects_hub::{Envelope, OpenOptions, Store, StoredObject, TursoStore as HubStore};
+use fs_objects::{Envelope, OpenOptions, Store, StoredObject, TursoStore as HubStore};
 
 const NOTES: usize = 80;
 const MIB: usize = 1 << 20;

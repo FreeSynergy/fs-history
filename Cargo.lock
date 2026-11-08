@@ -596,12 +596,12 @@ checksum = "1c66915cc5391097de7a2b0b972e8505aa33c0df401fd3a6811dbdb32881ba48"
 
 [[package]]
 name = "fs-history-core"
-version = "0.2.0"
+version = "0.0.1"
 dependencies = [
  "async-trait",
  "chrono",
  "fs-interfaces",
- "fs-objects 0.6.0",
+ "fs-objects",
  "getrandom 0.3.4",
  "serde_json",
  "sha2 0.10.9",
@@ -611,14 +611,13 @@ dependencies = [
 
 [[package]]
 name = "fs-history-hub"
-version = "0.2.0"
+version = "0.0.1"
 dependencies = [
  "async-trait",
  "fs-history-core",
  "fs-hub",
  "fs-hub-client",
- "fs-objects 0.5.0",
- "fs-objects 0.6.0",
+ "fs-objects",
  "serde_json",
  "tempfile",
  "tokio",
@@ -626,8 +625,8 @@ dependencies = [
 
 [[package]]
 name = "fs-hub"
-version = "0.4.0"
-source = "git+https://github.com/FreeSynergy/fs-hub?tag=v0.4.0#670fbfda7705a2c62776aac5127bf721cca97253"
+version = "0.0.1"
+source = "git+https://github.com/FreeSynergy/fs-hub?tag=v0.0.1#d80026896403641e55eabf0f79346f92ba06f69d"
 dependencies = [
  "async-trait",
  "capnp",
@@ -635,7 +634,7 @@ dependencies = [
  "chrono",
  "fs-hub-proto",
  "fs-interfaces",
- "fs-objects 0.5.0",
+ "fs-objects",
  "futures",
  "serde",
  "serde_json",
@@ -648,15 +647,15 @@ dependencies = [
 
 [[package]]
 name = "fs-hub-client"
-version = "0.4.0"
-source = "git+https://github.com/FreeSynergy/fs-hub?tag=v0.4.0#670fbfda7705a2c62776aac5127bf721cca97253"
+version = "0.0.1"
+source = "git+https://github.com/FreeSynergy/fs-hub?tag=v0.0.1#d80026896403641e55eabf0f79346f92ba06f69d"
 dependencies = [
  "capnp",
  "capnp-rpc",
  "chrono",
  "fs-hub-proto",
  "fs-interfaces",
- "fs-objects 0.5.0",
+ "fs-objects",
  "futures",
  "serde_json",
  "thiserror",
@@ -666,13 +665,13 @@ dependencies = [
 
 [[package]]
 name = "fs-hub-proto"
-version = "0.4.0"
-source = "git+https://github.com/FreeSynergy/fs-hub?tag=v0.4.0#670fbfda7705a2c62776aac5127bf721cca97253"
+version = "0.0.1"
+source = "git+https://github.com/FreeSynergy/fs-hub?tag=v0.0.1#d80026896403641e55eabf0f79346f92ba06f69d"
 dependencies = [
  "capnp",
  "chrono",
  "fs-interfaces",
- "fs-objects 0.5.0",
+ "fs-objects",
  "serde",
  "serde_json",
  "thiserror",
@@ -681,13 +680,13 @@ dependencies = [
 
 [[package]]
 name = "fs-interfaces"
-version = "0.45.0"
-source = "git+https://github.com/FreeSynergy/fs-interfaces?tag=v0.45.0#bc4eda933e80c537ae2d73dea371051ed3443fd9"
+version = "0.0.1"
+source = "git+https://github.com/FreeSynergy/fs-interfaces?tag=v0.0.1#9f2d3a0626d7382b478c754eb31834146188dfab"
 dependencies = [
  "capnp",
  "capnp-rpc",
  "chrono",
- "fs-objects 0.5.0",
+ "fs-objects",
  "futures",
  "rustix 1.1.6",
  "tokio",
@@ -697,26 +696,8 @@ dependencies = [
 
 [[package]]
 name = "fs-objects"
-version = "0.5.0"
-source = "git+https://github.com/FreeSynergy/fs-objects?tag=v0.5.0#b0a794ab702d8cf8660956950e1e8868e4c155c3"
-dependencies = [
- "async-trait",
- "base64",
- "chrono",
- "serde",
- "serde_json",
- "sha2 0.11.1",
- "thiserror",
- "tokio",
- "turso",
- "unicode-normalization",
- "uuid",
-]
-
-[[package]]
-name = "fs-objects"
-version = "0.6.0"
-source = "git+https://github.com/FreeSynergy/fs-objects?tag=v0.6.0#0bd5043bf98232d89f89d77ac2b7c172032fda6b"
+version = "0.0.1"
+source = "git+https://github.com/FreeSynergy/fs-objects?tag=v0.0.1#7cf0f05e3a9835b582aa2ac22014f2a1f1bff200"
 dependencies = [
  "async-trait",
  "base64",

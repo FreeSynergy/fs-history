@@ -7,8 +7,8 @@ use fs_history_hub::{HubSource, manifest};
 use fs_hub::{Config, Daemon};
 use fs_hub_client::{HubSession, HubStatus, Manifest, connect_at};
 use fs_objects::Query;
-use fs_objects::traits::{ActivityLog, UnloggedObjects};
-use fs_objects_hub::{Envelope, OpenOptions, Store, StoredObject, TursoStore as HubStore};
+use fs_objects::traits::UnloggedObjects;
+use fs_objects::{Envelope, OpenOptions, Store, StoredObject, TursoStore as HubStore};
 
 const SECRET: &str = "ada-secret@example.org";
 
