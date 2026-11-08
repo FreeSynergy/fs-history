@@ -7,7 +7,7 @@ use fs_history_hub::{HubSource, manifest};
 use fs_hub::{Config, Daemon};
 use fs_hub_client::{HubSession, HubStatus, Manifest, connect_at};
 use fs_objects::Query;
-use fs_objects::traits::{ActivityLog, ObjectQuery};
+use fs_objects::traits::{ActivityLog, UnloggedObjects};
 use fs_objects_hub::{Envelope, OpenOptions, Store, StoredObject, TursoStore as HubStore};
 
 const SECRET: &str = "ada-secret@example.org";
@@ -106,7 +106,13 @@ async fn two_programs_write_and_the_timeline_shows_them_without_content() {
     assert_eq!(again.stored + again.duplicates, 0);
 
     // Privacy, from the raw stored JSON: no content of any object, and no activity log.
-    let raw = serde_json::to_string(&store.query(&Query::new()).await.unwrap()).unwrap();
+    let raw = serde_json::to_string(
+        &store
+            .query_unlogged(&Query::new(), &[fs_history_core::ENTRY_TYPE])
+            .await
+            .unwrap(),
+    )
+    .unwrap();
     for leaked in [SECRET, "the plan is secret", "email", "notes"] {
         assert!(!raw.contains(leaked), "{leaked} must not be stored");
     }
