@@ -8,7 +8,7 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 use async_trait::async_trait;
 use fs_history_core::{ActivitySource, Batch, Error, HistoryRepo, Result, SourceActivity};
-use fs_store::{ObjectId, Timestamp, TursoStore};
+use fs_objects::{ObjectId, Timestamp, TursoStore};
 
 /// A history over a fresh in-memory store, and the store itself (to look at what is really kept).
 pub async fn setup() -> (HistoryRepo, Arc<TursoStore>) {

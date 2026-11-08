@@ -2,7 +2,7 @@
 //!
 //! Pattern: Repository (read side) — small helpers that run a query and decode the entries.
 
-use fs_store::{ObjectId, Query};
+use fs_objects::{ObjectId, Query};
 
 use super::codec::{from_object, to_object};
 use super::handle::HistoryRepo;

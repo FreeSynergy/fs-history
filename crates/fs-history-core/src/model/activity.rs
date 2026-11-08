@@ -3,7 +3,7 @@
 //! Pattern: Adapter (target shape) — adapters fill it from their own types, so the core never sees
 //! the hub's. It carries the summary fields only; a payload has no place in it.
 
-use fs_store::ObjectId;
+use fs_objects::ObjectId;
 
 use super::entry::{Entry, Timestamp};
 

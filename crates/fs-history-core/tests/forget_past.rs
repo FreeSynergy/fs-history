@@ -4,8 +4,8 @@ mod common;
 
 use common::{act, at, id, repo, setup};
 use fs_history_core::{EntryFilter, Outcome};
-use fs_store::Query;
-use fs_store::traits::ObjectQuery;
+use fs_objects::Query;
+use fs_objects::traits::ObjectQuery;
 
 /// Year 2096: after any forget made by a test run.
 const FUTURE: i64 = 4_000_000_000;

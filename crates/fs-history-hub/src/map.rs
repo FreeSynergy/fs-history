@@ -6,8 +6,8 @@
 //! `at_is_received` is true.
 
 use fs_history_core::{Error, Result, SourceActivity};
-use fs_store::ObjectId;
-use fs_store_hub::Activity;
+use fs_objects::ObjectId;
+use fs_objects_hub::Activity;
 
 fn bad(what: &str, e: impl std::fmt::Display) -> Error {
     Error::Source(format!("hub activity: {what}: {e}"))
@@ -42,6 +42,6 @@ pub(crate) fn summarise(a: &Activity) -> Result<SourceActivity> {
 }
 
 /// The object id type of the core, from a hub activity id.
-pub(crate) fn to_core_id(id: fs_store_hub::ActivityId) -> Result<ObjectId> {
+pub(crate) fn to_core_id(id: fs_objects_hub::ActivityId) -> Result<ObjectId> {
     id.to_string().parse().map_err(|e| bad("id", e))
 }

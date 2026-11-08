@@ -8,7 +8,7 @@ use async_trait::async_trait;
 use common::{act, id, repo};
 use fs_history_core::{Cursor, Entry, EntryFilter, Error, FeedEvent, History, Page, Result};
 use fs_interfaces::Capabilities;
-use fs_store::ObjectId;
+use fs_objects::ObjectId;
 
 /// A provider that can only read.
 struct ReadOnly;

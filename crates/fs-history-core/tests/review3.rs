@@ -8,8 +8,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use async_trait::async_trait;
 use common::{act, at, id, repo};
 use fs_history_core::{EntryFilter, HistoryRepo, Outcome};
-use fs_store::traits::ObjectQuery;
-use fs_store::{Query, StoredObject, TursoStore};
+use fs_objects::traits::ObjectQuery;
+use fs_objects::{Query, StoredObject, TursoStore};
 
 const FUTURE: i64 = 4_000_000_000;
 
@@ -104,12 +104,12 @@ struct Counting(Arc<TursoStore>, Arc<AtomicUsize>);
 
 #[async_trait]
 impl ObjectQuery for Counting {
-    async fn query(&self, q: &Query) -> fs_store::Result<Vec<StoredObject>> {
+    async fn query(&self, q: &Query) -> fs_objects::Result<Vec<StoredObject>> {
         let rows = self.0.query(q).await?;
         self.1.fetch_add(rows.len(), Ordering::SeqCst);
         Ok(rows)
     }
-    async fn count(&self, q: &Query) -> fs_store::Result<usize> {
+    async fn count(&self, q: &Query) -> fs_objects::Result<usize> {
         self.0.count(q).await
     }
 }

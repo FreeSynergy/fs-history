@@ -8,7 +8,7 @@
 
 use std::collections::HashSet;
 
-use fs_store::{Envelope, ObjectId, Query, StoredObject, Timestamp};
+use fs_objects::{Envelope, ObjectId, Query, StoredObject, Timestamp};
 use serde_json::json;
 
 use super::consts::{TOMBSTONE_CONTENT, TOMBSTONE_TYPE};

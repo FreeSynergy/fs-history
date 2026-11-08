@@ -7,8 +7,8 @@ use std::sync::atomic::Ordering;
 
 use common::{Scripted, act, id, numbers, setup};
 use fs_history_core::{EntryFilter, Error, Observer};
-use fs_store::Query;
-use fs_store::traits::ObjectQuery;
+use fs_objects::Query;
+use fs_objects::traits::ObjectQuery;
 
 fn all() -> EntryFilter {
     EntryFilter::default()
@@ -99,7 +99,7 @@ impl fs_history_core::ActivitySource for Stuck {
             more: true,
         })
     }
-    async fn ack(&self, _: fs_store::ObjectId) -> fs_history_core::Result<()> {
+    async fn ack(&self, _: fs_objects::ObjectId) -> fs_history_core::Result<()> {
         Ok(())
     }
 }

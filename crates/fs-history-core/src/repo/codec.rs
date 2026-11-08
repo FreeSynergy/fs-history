@@ -4,7 +4,7 @@
 //! attributedTo, published) plus index fields the store can query. The content holds the rest of
 //! the summary. No payload and no object content is ever written: the fields are the whole record.
 
-use fs_store::{Envelope, StoredObject};
+use fs_objects::{Envelope, StoredObject};
 use serde_json::{Value, json};
 
 use super::consts::{ENTRY_CONTENT, ENTRY_TYPE};
@@ -55,7 +55,7 @@ pub(super) fn from_object(o: &StoredObject) -> Result<Entry> {
     let c = &o.content;
     let object = text(c, "object")
         .parse()
-        .map_err(|e: fs_store::Error| Error::Invalid(e.to_string()))?;
+        .map_err(|e: fs_objects::Error| Error::Invalid(e.to_string()))?;
     Ok(Entry {
         id: o.envelope.id,
         at: o.envelope.published,

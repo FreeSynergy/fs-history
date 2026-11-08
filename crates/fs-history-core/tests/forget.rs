@@ -4,8 +4,8 @@ mod common;
 
 use common::{act, at, id, repo, setup};
 use fs_history_core::{EntryFilter, Error, FeedEvent, History};
-use fs_store::Query;
-use fs_store::traits::ObjectQuery;
+use fs_objects::Query;
+use fs_objects::traits::ObjectQuery;
 
 fn program(p: &str) -> EntryFilter {
     EntryFilter {

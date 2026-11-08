@@ -10,7 +10,7 @@
 use async_trait::async_trait;
 use fs_history_core::{ActivitySource, Batch, Error, Result};
 use fs_hub_client::HubSession;
-use fs_store::ObjectId;
+use fs_objects::ObjectId;
 
 use crate::map::{summarise, to_core_id};
 

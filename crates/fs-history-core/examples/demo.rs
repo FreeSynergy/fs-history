@@ -5,7 +5,7 @@
 use std::sync::Arc;
 
 use fs_history_core::{EntryFilter, Error, HistoryRepo, SourceActivity, Timestamp};
-use fs_store::{ObjectId, TursoStore};
+use fs_objects::{ObjectId, TursoStore};
 
 fn activity(kind: &str, object: ObjectId, secs: i64, name: &str) -> SourceActivity {
     SourceActivity {

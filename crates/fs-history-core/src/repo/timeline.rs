@@ -3,7 +3,7 @@
 //! Pattern: Iterator (cursor paging) — a page is one more than asked for, to know whether a next
 //! page exists; the cursor is the position of the last item, not an offset.
 
-use fs_store::ObjectId;
+use fs_objects::ObjectId;
 
 use super::codec::from_object;
 use super::consts::ENTRY_TYPE;

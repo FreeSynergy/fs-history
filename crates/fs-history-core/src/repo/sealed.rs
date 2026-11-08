@@ -5,7 +5,7 @@
 //! forgotten name is not readable from the tombstone. A guessed value can still be tested; that is
 //! the stated limit. Times and the object id are not texts and stay as they are.
 
-use fs_store::{ObjectId, Timestamp};
+use fs_objects::{ObjectId, Timestamp};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 

@@ -4,7 +4,7 @@
 //! id as its id. It outlives the entries (a hidden or forgotten `Delete`), so a later change stays
 //! blank until a new `Create` removes the marker. It holds no name and no context.
 
-use fs_store::{Envelope, ObjectId, StoredObject, Timestamp};
+use fs_objects::{Envelope, ObjectId, StoredObject, Timestamp};
 use serde_json::json;
 
 use super::consts::{DELETED_TYPE, ENTRY_CONTENT};

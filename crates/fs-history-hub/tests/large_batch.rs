@@ -6,7 +6,7 @@ use fs_history_core::{EntryFilter, HistoryRepo, Observer};
 use fs_history_hub::{HubSource, manifest};
 use fs_hub::{Config, Daemon};
 use fs_hub_client::{HubStatus, Manifest, connect_at};
-use fs_store_hub::{Envelope, OpenOptions, Store, StoredObject, TursoStore as HubStore};
+use fs_objects_hub::{Envelope, OpenOptions, Store, StoredObject, TursoStore as HubStore};
 
 const NOTES: usize = 80;
 const MIB: usize = 1 << 20;
@@ -37,7 +37,7 @@ async fn eighty_one_mib_notes_do_not_stick_the_ingest() {
     }
 
     let h_session = connect(&socket).await;
-    let own = Arc::new(fs_store::TursoStore::open_in_memory().await.unwrap());
+    let own = Arc::new(fs_objects::TursoStore::open_in_memory().await.unwrap());
     let repo = HistoryRepo::new(own.clone(), own);
 
     // Asking for 100 at a time is too large for the hub; it says so, and says what to do.

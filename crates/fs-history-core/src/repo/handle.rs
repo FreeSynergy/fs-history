@@ -6,7 +6,7 @@
 
 use std::sync::Arc;
 
-use fs_store::traits::{ObjectQuery, UnloggedObjects};
+use fs_objects::traits::{ObjectQuery, UnloggedObjects};
 use tokio::sync::Mutex;
 
 use crate::feed::{Feed, Subscription};

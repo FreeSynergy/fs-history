@@ -8,7 +8,7 @@ use std::sync::Arc;
 use fs_history_core::{EntryFilter, HistoryRepo, Observer};
 use fs_history_hub::{HubSource, manifest};
 use fs_hub_client::{HubStatus, connect, offer_install};
-use fs_store::TursoStore;
+use fs_objects::TursoStore;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

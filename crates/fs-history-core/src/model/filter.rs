@@ -3,7 +3,7 @@
 //! Pattern: Specification — a plain value with a predicate; the repository translates the same
 //! value into a store query, and tombstones and subscriptions evaluate it in memory.
 
-use fs_store::ObjectId;
+use fs_objects::ObjectId;
 
 use crate::reads::normalize_type;
 

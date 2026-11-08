@@ -6,9 +6,9 @@ use fs_history_core::{EntryFilter, HistoryRepo, Observer};
 use fs_history_hub::{HubSource, manifest};
 use fs_hub::{Config, Daemon};
 use fs_hub_client::{HubSession, HubStatus, Manifest, connect_at};
-use fs_store::Query;
-use fs_store::traits::{ActivityLog, ObjectQuery};
-use fs_store_hub::{Envelope, OpenOptions, Store, StoredObject, TursoStore as HubStore};
+use fs_objects::Query;
+use fs_objects::traits::{ActivityLog, ObjectQuery};
+use fs_objects_hub::{Envelope, OpenOptions, Store, StoredObject, TursoStore as HubStore};
 
 const SECRET: &str = "ada-secret@example.org";
 
@@ -70,7 +70,7 @@ async fn two_programs_write_and_the_timeline_shows_them_without_content() {
 
     // History: its own store, registered with its own manifest, observing through the hub.
     let (h_session, _own) = program(&dir, manifest()).await;
-    let store = Arc::new(fs_store::TursoStore::open_in_memory().await.unwrap());
+    let store = Arc::new(fs_objects::TursoStore::open_in_memory().await.unwrap());
     let repo = HistoryRepo::new(store.clone(), store.clone());
     let observer = Observer::new(repo.clone(), Arc::new(HubSource::new(h_session)));
     let report = observer.catch_up().await.unwrap();

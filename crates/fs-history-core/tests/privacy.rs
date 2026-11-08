@@ -3,9 +3,9 @@
 mod common;
 
 use common::{act, setup};
-use fs_store::ActivityFilter;
-use fs_store::Query;
-use fs_store::traits::{ActivityLog, ObjectQuery};
+use fs_objects::ActivityFilter;
+use fs_objects::Query;
+use fs_objects::traits::{ActivityLog, ObjectQuery};
 
 #[tokio::test]
 async fn raw_stored_json_holds_only_the_summary_and_the_log_stays_empty() {

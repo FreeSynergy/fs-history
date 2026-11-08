@@ -3,7 +3,7 @@
 //! Pattern: Builder (over the store's `Query`) — the same `EntryFilter` that works in memory is
 //! translated here; the cursor is a keyset (time, id) so equal timestamps page stably.
 
-use fs_store::{Cond, ObjectId, Op, Order, Query, TimeField, Timestamp};
+use fs_objects::{Cond, ObjectId, Op, Order, Query, TimeField, Timestamp};
 
 use super::consts::ENTRY_TYPE;
 use crate::error::{Error, Result};

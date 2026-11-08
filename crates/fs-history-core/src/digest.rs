@@ -8,7 +8,7 @@
 use std::collections::{HashMap, HashSet};
 
 use chrono::Duration;
-use fs_store::ObjectId;
+use fs_objects::ObjectId;
 
 use crate::model::{DigestEntry, Entry};
 

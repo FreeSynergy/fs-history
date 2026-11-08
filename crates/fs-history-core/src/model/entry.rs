@@ -2,8 +2,8 @@
 //!
 //! Pattern: Value object — the Rust form of `Entry` in `history.capnp`. It never holds a payload.
 
-use fs_store::ObjectId;
-pub use fs_store::Timestamp;
+use fs_objects::ObjectId;
+pub use fs_objects::Timestamp;
 
 /// One line of the history.
 #[derive(Clone, Debug, PartialEq, Eq)]
