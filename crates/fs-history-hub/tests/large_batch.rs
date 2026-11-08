@@ -40,20 +40,18 @@ async fn eighty_one_mib_notes_do_not_stick_the_ingest() {
     let own = Arc::new(fs_objects::TursoStore::open_in_memory().await.unwrap());
     let repo = HistoryRepo::new(own.clone());
 
-    // Asking for 100 at a time is too large for the hub; it says so, and says what to do.
+    // Asking for 100 at a time is too large for one hub message: since fs-hub 0.3 the hub cuts the
+    // batch itself and says there is more, instead of refusing it.
     let greedy = HubSource::new(h_session).with_max_batch(100);
     let observer = Observer::new(repo.clone(), Arc::new(greedy));
-    let err = observer.run_once().await.unwrap_err().to_string();
-    assert!(
-        err.contains("too large") && err.contains("with_max_batch"),
-        "{err}"
-    );
+    let cut = observer.run_once().await.unwrap();
+    assert!(cut.more && cut.stored < NOTES, "{cut:?}");
 
     // The default stays below the limit, with the default observer batch of 100.
     let h_session = connect(&socket).await;
     let observer = Observer::new(repo.clone(), Arc::new(HubSource::new(h_session)));
     let report = observer.catch_up().await.unwrap();
-    assert_eq!(report.stored, NOTES);
+    assert_eq!(report.stored + cut.stored, NOTES);
     let page = repo.timeline(&EntryFilter::default(), None).await.unwrap();
     assert_eq!(page.items.len(), NOTES);
 }
