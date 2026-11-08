@@ -8,7 +8,7 @@ What is different here: it keeps a summary, never the content. A diary text stay
 
 ## What it can do today
 
-Latest tag: `v0.1.1`.
+Latest tag: `v0.0.1`.
 
 - A timeline of activities from other programs, newest first, with filters and paging.
 - A digest that groups runs of events on the same object.
