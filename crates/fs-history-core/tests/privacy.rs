@@ -65,5 +65,5 @@ async fn forget_and_delete_leave_no_activity_either() {
     };
     repo.forget(&filter).await.unwrap();
     let log = store.activities(&ActivityFilter::default()).await.unwrap();
-    assert!(log.is_empty());
+    assert_eq!(log, [] as [fs_objects::Activity; 0]);
 }

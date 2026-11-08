@@ -9,7 +9,7 @@ fn default_reads_and_no_writes() {
     assert_eq!(m.program, PROGRAM);
     assert_eq!(m.reads, DEFAULT_READS);
     assert!(m.writes.is_empty(), "history writes nothing to the hub");
-    assert!(m.content_types.is_empty());
+    assert_eq!(m.content_types, [] as [std::string::String; 0]);
     assert!(m.capabilities.contains(&"history.forget".to_string()));
 }
 

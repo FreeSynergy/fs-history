@@ -116,6 +116,9 @@ async fn two_programs_write_and_the_timeline_shows_them_without_content() {
     for leaked in [SECRET, "the plan is secret", "email", "notes"] {
         assert!(!raw.contains(leaked), "{leaked} must not be stored");
     }
-    let log = store.activities(&Default::default()).await.unwrap();
-    assert!(log.is_empty());
+    let log = store
+        .activities(&fs_objects::ActivityFilter::default())
+        .await
+        .unwrap();
+    assert_eq!(log, [] as [fs_objects::Activity; 0]);
 }

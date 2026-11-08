@@ -132,7 +132,7 @@ async fn the_cap_bounds_what_a_page_reads() {
     writer
         .record(
             (1..=500)
-                .map(|n| act(n, n as i64 * 60, "Update", 1))
+                .map(|n| act(n, i64::try_from(n).unwrap() * 60, "Update", 1))
                 .collect(),
         )
         .await

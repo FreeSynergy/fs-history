@@ -58,7 +58,7 @@ async fn a_crash_before_the_ack_gives_no_duplicates() {
 async fn catch_up_loops_while_there_is_more() {
     let repo = common::repo().await;
     let items = (1..=7)
-        .map(|n| act(n, 100 + n as i64, "Update", 1))
+        .map(|n| act(n, 100 + i64::try_from(n).unwrap(), "Update", 1))
         .collect();
     let source = Scripted::with(items);
     let observer = Observer::new(repo.clone(), source.clone()).with_batch(3);

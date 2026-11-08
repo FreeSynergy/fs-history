@@ -60,7 +60,7 @@ async fn a_page_never_splits_a_group() {
     let repo = repo().await.with_page_size(2);
     // Object 1: four edits a minute apart (one group). Object 2: one edit a day earlier.
     let mut items: Vec<_> = (1..=4)
-        .map(|n| act(n, 10_000 + minutes(n as i64), "Update", 1))
+        .map(|n| act(n, 10_000 + minutes(i64::try_from(n).unwrap()), "Update", 1))
         .collect();
     items.push(act(5, 100, "Create", 2));
     repo.record(items).await.unwrap();
