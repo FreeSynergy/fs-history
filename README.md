@@ -20,7 +20,7 @@ Latest tag: `v0.0.1`.
 
 ## What is not there yet
 
-- No window and no server.
+- A window (`fs-history`, generated Admin frontend over the type catalog, charts as a separate window) and a Cap'n Proto server library with `types`; no daemon yet, nothing fills the index in the window (see `DESIGN.md`, Unsupported).
 - Who did something is empty for now, and the time is when the entry arrived, not necessarily when it happened (see DESIGN.md).
 - Forgetting covers this index only. The hub's own log is not touched.
 - No sharing and no group view. No import of telemetry, no time tracking.

@@ -1,0 +1,22 @@
+name: release
+on:
+  push: { tags: ["v*"] }
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+  packages: write
+jobs:
+  release:
+    uses: FreeSynergy/fs-release/.github/workflows/release.yml@main
+    with:
+      binaries: fs-history
+      cargo-package: fs-history
+      name: fs-history
+      kind: app
+      app-id: net.freesynergy.History
+      macos: false
+      windows-targets: ""   # the index store is read from a file; Windows paths are not tried yet
+    secrets:
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}

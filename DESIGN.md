@@ -1,11 +1,11 @@
 # fs-history – Design
 
 `fs-history` observes what happens across programs (ADR 0020). This repo holds the **program core**, no GUI. Contract:
-`history.capnp` in `fs-interfaces` v0.20.0 or later (draft, provisional). Program docs: `fs-documentation/docs/en/programs/apps/history/`.
+`history.capnp` in `fs-interfaces` v0.0.11 (draft, provisional). Program docs: `fs-documentation/docs/en/programs/apps/history/`.
 
 ## State
 
-Version 0.1.1. No capnp server and no GUI.
+Version 0.0.1 (branch `r3-admin`, thread R3, not tagged). Core, capnp server (`types` included) and window.
 
 | Area | State |
 |---|---|
@@ -17,7 +17,7 @@ Version 0.1.1. No capnp server and no GUI.
 | Actor | empty; `originalActor` stays empty until the person releases it (strategy, in `hub.capnp`) |
 | Original time | receive time for now; `originalAt` comes with the next fs-hub tag |
 | A dead hub session | not reconnected; the host starts a new one |
-| capnp server | not built; thread 3 |
+| capnp server | `fs-history-server`: all methods except `subscribe` (answers `Unsupported`), `types` included, tested over a real socket |
 | Tests | 49, real stores and a real hub, the 80 MiB test included |
 
 Checked by an independent reviewer over three rounds; the last found one small error, fixed in 0.1.1 with a test.
@@ -56,3 +56,45 @@ A pure function: entries newest first → grouped when object and program are eq
 
 ### Not built
 Telemetry import (OpenTelemetry not read), time tracking derived from history, sharing and group views. They have no contract method yet.
+
+## Thread R3: type description, server, window (2026-11-10, provisional)
+
+### Data types and the one command table
+Two types are described (`describe.rs`, `impl DescribesType`): `Entry` (AS2 `Activity`, summary) and `Digest` (grouped line). Fields are the members of `Entry` and `DigestEntry` in `history.capnp`. **One table** (`commands.rs`: type, name, kind, `supported`, capability, requirement text, input, result) is the source of the description, of `unsupported_commands()`, of the backend's `supported()` and refusal, and of the test against `requirements.md`. The description lists **every** command; a missing one carries `supported = false` (fs-types v0.0.11, `CommandDescription::unsupported()`). Switched from the transitional rule (flag only in the table) to the schema flag: one line in `describe.rs::describe_command`.
+
+| Type | Command | Kind | State |
+|---|---|---|---|
+| Entry | `find` (standard find: `term` + filter members `from to program person objectType context object`) | find | done (`history.read`; `term` is matched in the program over name, program, verb, type, context) |
+| Entry | `get` | find | done |
+| Entry | `forget` (this entry's object in its program) | delete | done (`history.forget`) |
+| Entry | `forgetMatching` (filter + `confirm`) | other | done; an empty filter is refused |
+| Entry | `subscribe` | other | Unsupported: a stream; the core has it in process, a command answers once, the RPC listener is not built |
+| Entry | `change` (place and weather) | change | Unsupported: an entry is a derived summary; proposed |
+| Entry | `onThisDay`, `capture`, `categorise`, `import`, `correlate` | find/create/other | Unsupported: proposed in requirements.md, not built |
+| Digest | `find` (+ `windowMinutes`) | find | done (`history.digest`) |
+| Digest | `weeklySummary` | find | Unsupported: proposed |
+| Entry | `contactMergeSuggest`, `contactMerge`, `contactShareNearby`, `contactPromote`, `contactHistory`, `contactKeepInTouch`, `contactLifeEvent` | various | Unsupported. **Probably misfiled:** these seven rows of `requirements.md` (names `contact.*`) are copied from the people analysis (Google/Apple Contacts, Monica) and belong to fs-people. They are in the table as the rule demands; the question goes to the strategy |
+
+The test `tests/describe.rs` reads every row of `requirements.md` (a snapshot in `tests/data/requirements.md`; `FS_HISTORY_REQUIREMENTS=<path>` checks the live file) and requires a table row for each row and each named command, and that every supported row is a capability of the provider (test against the trait `History`).
+
+Not described (no basic type yet, `Unsupported`): `atIsReceived` and `continues` (yes/no), `count` is text with the decimal number, `place`/`weather` fields.
+
+### Pattern map
+| Where | Pattern | Why |
+|---|---|---|
+| `commands.rs` table | Registry (table-driven) | one source for description, refusal and tests |
+| `describe.rs` | Registry entry + Adapter | `DescribesType` for `Entry`, `DigestEntry` |
+| `fs-history-server` | Adapter | each method of the contract is one call of the trait `History` |
+| `fs-history-app` `HistoryBackend` | Adapter + Repository | the frontend's `Backend` over `History`, one per type |
+| `fs-history-app` `EntriesPerDay`, `DigestPerProgram` | Strategy | `ChartSource`: data and spec only, no pixel (ADR 0066) |
+| `fs-components-chart-surface` (in fs-components, branch `r3-history-charts`) | Strategy + Adapter | the chart screen of the shell; this is where the drawing lives |
+
+### The window
+`fs-history` (crate `fs-history`) opens `fs-history-app::gui::run`: `admin_window` of the generated frontend with a screen for `Entry` and one for `Digest`; no render code, no `blinc_*` import. It reads the history index from a store file (`--store`, default `$XDG_DATA_HOME/freesynergy/history/index.db`) in process. Blinc through `blinc-app-fix` / `blinc-layout-fix` at the pins of fs-tasks (`5180d4ea`, `cb17db81`). fs-components at one commit `99a6575` (branch `r3-history-charts` = `thread-a-admin-frontend` 7b47a65 + the chart crate), provisional until merged and tagged.
+
+### Unsupported (named, not faked)
+* **Charts in the main window.** `admin_window` takes only data-type surfaces; the two charts open as their own window (`--chart entries-per-day|digest-per-program`) until the frontend takes extra screens (thread A).
+* **`BackendError` has no variant for "not possible".** `HistoryBackend::run_checked` answers a typed `RunError::Unsupported`; `Backend::run` can only say `NotFound` for such a command. `Backend::supported` answers false for them, so the frontend shows them locked.
+* **Nothing fills the index in this window.** The observer over the hub (`fs-history-hub`) has no process; the window shows what the store file holds. A server/daemon (`fs-history serve`) and the remote client (as fs-people's `RemotePeople`) are not built; the window uses the core in process.
+* `subscribe` over RPC (see table); the list is cut at 2000 records (`MAX_LIST`), the filter is how a person narrows it.
+* Words: English only, in `words.rs` (ADR 0053 will replace it). Entries cannot be changed (the index is derived): no `change`.
