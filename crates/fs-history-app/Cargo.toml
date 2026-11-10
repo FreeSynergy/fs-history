@@ -1,0 +1,27 @@
+[package]
+name = "fs-history-app"
+description = "The history program of FreeSynergy, window: the window shell (ADR 0065) around the generated Admin frontend (ADR 0066) over the type catalog, with timeline and digest charts; no render code of its own"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+fs-history-core = { path = "../fs-history-core" }
+fs-objects = { git = "https://github.com/FreeSynergy/fs-objects", tag = "v0.0.1" }
+# One commit of fs-components for the frontend, the shell and the chart screen (provisional: branch r3-history-charts on
+# top of thread-a-admin-frontend 7b47a65, fs-types v0.0.11; becomes a tag once merged and reviewed).
+fs-admin-frontend = { git = "https://github.com/FreeSynergy/fs-components", rev = "99a65756d4ef8bd998ab932195e8c5d7fa35920e" }
+fs-components-app = { git = "https://github.com/FreeSynergy/fs-components", rev = "99a65756d4ef8bd998ab932195e8c5d7fa35920e" }
+fs-components-fields = { git = "https://github.com/FreeSynergy/fs-components", rev = "99a65756d4ef8bd998ab932195e8c5d7fa35920e" }
+fs-components-styles = { git = "https://github.com/FreeSynergy/fs-components", rev = "99a65756d4ef8bd998ab932195e8c5d7fa35920e" }
+fs-components-chart-surface = { git = "https://github.com/FreeSynergy/fs-components", rev = "99a65756d4ef8bd998ab932195e8c5d7fa35920e" }
+fs-components-charts = { git = "https://github.com/FreeSynergy/fs-components", rev = "99a65756d4ef8bd998ab932195e8c5d7fa35920e" }
+fs-interfaces = { git = "https://github.com/FreeSynergy/fs-interfaces", tag = "v0.0.11" }
+fs-types = { git = "https://github.com/FreeSynergy/fs-interfaces", tag = "v0.0.11" }
+chrono = { version = "0.4", default-features = false, features = ["std"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "sync"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }
