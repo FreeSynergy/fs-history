@@ -74,14 +74,25 @@ async fn types_serves_the_catalog_with_every_command() {
         assert_eq!(back.len(), 2);
         let entry = back.get("Entry").unwrap();
         assert_eq!(entry.program, "fs-history");
-        for name in ["find", "get", "forget", "forgetMatching", "subscribe", "contactMerge", "onThisDay"] {
+        for name in [
+            "find",
+            "get",
+            "forget",
+            "forgetMatching",
+            "subscribe",
+            "contactMerge",
+            "onThisDay",
+        ] {
             assert!(entry.find_command(name).is_some(), "{name}");
         }
         // the flag travels on the wire: locked ones are listed, not hidden
         assert!(entry.find_command("find").unwrap().supported);
         assert!(!entry.find_command("subscribe").unwrap().supported);
         assert!(!entry.find_command("contactMerge").unwrap().supported);
-        assert_eq!(entry.find_command("forget").unwrap().kind, CommandKind::Delete);
+        assert_eq!(
+            entry.find_command("forget").unwrap().kind,
+            CommandKind::Delete
+        );
         assert!(back.get("Digest").unwrap().find_command("find").is_some());
         assert!(back.unresolved_targets().is_empty());
     })
@@ -94,14 +105,25 @@ async fn timeline_get_digest_and_forget_answer() {
         let page = root.timeline_request().send().promise.await.unwrap();
         let items = page.get().unwrap().get_page().unwrap().get_items().unwrap();
         // newest first
-        let names: Vec<_> = items.iter().map(|e| e.get_name().unwrap().to_string().unwrap()).collect();
+        let names: Vec<_> = items
+            .iter()
+            .map(|e| e.get_name().unwrap().to_string().unwrap())
+            .collect();
         assert_eq!(names, ["Meeting 2", "Meeting 1", "Meeting 1"]);
         let first_id = items.get(0).get_id().unwrap();
         let mut get = root.get_request();
         get.get().set_id(first_id).unwrap();
         let got = get.send().promise.await.unwrap();
         assert!(got.get().unwrap().get_found());
-        assert_eq!(got.get().unwrap().get_entry().unwrap().get_program().unwrap(), "calendar");
+        assert_eq!(
+            got.get()
+                .unwrap()
+                .get_entry()
+                .unwrap()
+                .get_program()
+                .unwrap(),
+            "calendar"
+        );
 
         let mut digest = root.digest_request();
         digest.get().set_window_minutes(10);
@@ -115,7 +137,17 @@ async fn timeline_get_digest_and_forget_answer() {
         let f = forget.send().promise.await.unwrap();
         assert_eq!(f.get().unwrap().get_removed(), 3);
         let again = root.timeline_request().send().promise.await.unwrap();
-        assert_eq!(again.get().unwrap().get_page().unwrap().get_items().unwrap().len(), 0);
+        assert_eq!(
+            again
+                .get()
+                .unwrap()
+                .get_page()
+                .unwrap()
+                .get_items()
+                .unwrap()
+                .len(),
+            0
+        );
     })
     .await;
 }
@@ -145,8 +177,17 @@ async fn the_support_report_names_what_is_offered() {
         let report = r.get().unwrap().get_report().unwrap();
         assert!(report.get_entries().unwrap().len() >= 4);
         let c = root.capabilities_request().send().promise.await.unwrap();
-        let ids = c.get().unwrap().get_capabilities().unwrap().get_ids().unwrap();
-        assert!(ids.iter().any(|i| i.unwrap().to_str().unwrap() == "history.read"));
+        let ids = c
+            .get()
+            .unwrap()
+            .get_capabilities()
+            .unwrap()
+            .get_ids()
+            .unwrap();
+        assert!(
+            ids.iter()
+                .any(|i| i.unwrap().to_str().unwrap() == "history.read")
+        );
     })
     .await;
 }

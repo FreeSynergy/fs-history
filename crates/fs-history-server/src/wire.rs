@@ -4,9 +4,7 @@
 
 use fs_history_core::{Cursor, DigestEntry, Entry, EntryFilter, Page, Timestamp};
 use fs_interfaces::history_capnp::{digest_entry, digest_page, entry, entry_filter, entry_page};
-use fs_interfaces::rpc::{
-    from_millis, invalid_request, read_uuid, to_millis, write_object_id,
-};
+use fs_interfaces::rpc::{from_millis, invalid_request, read_uuid, to_millis, write_object_id};
 use fs_objects::ObjectId;
 
 fn time(t: fs_interfaces::common_capnp::timestamp::Reader<'_>) -> capnp::Result<Option<Timestamp>> {
@@ -47,7 +45,8 @@ pub(crate) fn read_cursor(
     if bytes.is_empty() {
         return Ok(None);
     }
-    let s = std::str::from_utf8(bytes).map_err(|_| invalid_request("cursor is not one this server handed out"))?;
+    let s = std::str::from_utf8(bytes)
+        .map_err(|_| invalid_request("cursor is not one this server handed out"))?;
     Ok(Some(Cursor(s.to_owned())))
 }
 
@@ -85,7 +84,9 @@ pub(crate) fn write_entries(mut out: entry_page::Builder<'_>, page: &Page<Entry>
 
 fn write_digest(mut out: digest_entry::Builder<'_>, d: &DigestEntry) {
     write_entry(out.reborrow().init_first(), &d.first);
-    out.reborrow().init_last_at().set_unix_millis(to_millis(d.last_at));
+    out.reborrow()
+        .init_last_at()
+        .set_unix_millis(to_millis(d.last_at));
     out.set_count(d.count);
     let mut kinds = out
         .reborrow()

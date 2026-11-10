@@ -78,14 +78,24 @@ impl HistoryBackend {
         };
         if !row.supported {
             return Err(RunError::Unsupported(Unsupported::new(
-                if row.capability.is_empty() { name } else { row.capability },
+                if row.capability.is_empty() {
+                    name
+                } else {
+                    row.capability
+                },
                 row.reason,
             )));
         }
-        self.carry_out(name, record, input).map_err(RunError::Backend)
+        self.carry_out(name, record, input)
+            .map_err(RunError::Backend)
     }
 
-    fn carry_out(&self, name: &str, record: Option<&str>, input: &Values) -> Result<Outcome, BackendError> {
+    fn carry_out(
+        &self,
+        name: &str,
+        record: Option<&str>,
+        input: &Values,
+    ) -> Result<Outcome, BackendError> {
         match (self.data_type, name) {
             (_, "find") => {
                 let records = self.list(input)?;
@@ -148,7 +158,9 @@ impl HistoryBackend {
         work: impl std::future::Future<Output = fs_history_core::Result<T>>,
     ) -> Result<T, BackendError> {
         self.handle.block_on(work).map_err(|e| match e {
-            fs_history_core::Error::Refused(why) => BackendError::Unavailable(format!("refused: {why}")),
+            fs_history_core::Error::Refused(why) => {
+                BackendError::Unavailable(format!("refused: {why}"))
+            }
             other => BackendError::Unavailable(other.to_string()),
         })
     }

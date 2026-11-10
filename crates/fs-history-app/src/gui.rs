@@ -34,8 +34,7 @@ pub const HELP: &str = "fs-history: the history window (without arguments it ope
   --size <WxH>     window size (default 1200x800)";
 
 /// The page the Help entry opens.
-pub const HELP_URL: &str =
-    "https://github.com/FreeSynergy/fs-documentation/blob/main/docs/en/programs/apps/history/index.md";
+pub const HELP_URL: &str = "https://github.com/FreeSynergy/fs-documentation/blob/main/docs/en/programs/apps/history/index.md";
 
 /// Minutes within which changes to one object by one program are one digest line, in the chart.
 const CHART_WINDOW: u32 = 60;
@@ -79,16 +78,24 @@ pub fn app_widget(history: &Arc<dyn History>, handle: &Handle) -> Result<AppWidg
             }
         })
         .collect();
-    admin_window(TITLE, &say, views, about(), HELP_URL.to_owned()).map_err(|e: AppError| e.to_string())
+    admin_window(TITLE, &say, views, about(), HELP_URL.to_owned())
+        .map_err(|e: AppError| e.to_string())
 }
 
 /// The two chart screens, for the shell of a program that adds screens itself.
-pub fn chart_surfaces(history: &Arc<dyn History>, handle: &Handle) -> [(&'static str, ChartSurface); 2] {
+pub fn chart_surfaces(
+    history: &Arc<dyn History>,
+    handle: &Handle,
+) -> [(&'static str, ChartSurface); 2] {
     [
         (
             "chart.entries-per-day",
             ChartSurface::new(
-                Arc::new(EntriesPerDay::new(Arc::clone(history), handle.clone(), EntryFilter::default())),
+                Arc::new(EntriesPerDay::new(
+                    Arc::clone(history),
+                    handle.clone(),
+                    EntryFilter::default(),
+                )),
                 Labels::default(),
             ),
         ),
@@ -162,6 +169,17 @@ fn parse(words: &[String]) -> Result<Args, String> {
     Ok(out)
 }
 
+/// The index file in the data folder of the user, whose folder is made.
+fn default_store() -> Result<PathBuf, String> {
+    let base = std::env::var_os("XDG_DATA_HOME")
+        .map(PathBuf::from)
+        .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".local/share")))
+        .ok_or("no data folder: give --store or set $XDG_DATA_HOME or $HOME")?;
+    let dir = base.join("freesynergy/history");
+    std::fs::create_dir_all(&dir).map_err(|e| format!("{}: {e}", dir.display()))?;
+    Ok(dir.join("index.db"))
+}
+
 /// Open the window. `words` are the words without the program name.
 ///
 /// # Errors
@@ -173,18 +191,7 @@ pub fn run(words: &[String]) -> Result<(), String> {
         return Ok(());
     }
     let runtime = tokio::runtime::Runtime::new().map_err(|e| e.to_string())?;
-    let file = match args.store {
-        Some(f) => f,
-        None => {
-            let base = std::env::var_os("XDG_DATA_HOME")
-                .map(PathBuf::from)
-                .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".local/share")))
-                .ok_or("no data folder: give --store or set $XDG_DATA_HOME or $HOME")?;
-            let dir = base.join("freesynergy/history");
-            std::fs::create_dir_all(&dir).map_err(|e| format!("{}: {e}", dir.display()))?;
-            dir.join("index.db")
-        }
-    };
+    let file = args.store.map_or_else(default_store, Ok)?;
     let store = runtime
         .block_on(TursoStore::open(&file))
         .map_err(|e| format!("cannot open the history index {}: {e}", file.display()))?;

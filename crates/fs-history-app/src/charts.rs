@@ -12,7 +12,10 @@ use tokio::runtime::Handle;
 
 use crate::MAX_LIST;
 
-fn read<T>(handle: &Handle, work: impl std::future::Future<Output = fs_history_core::Result<T>>) -> Option<T> {
+fn read<T>(
+    handle: &Handle,
+    work: impl std::future::Future<Output = fs_history_core::Result<T>>,
+) -> Option<T> {
     handle.block_on(work).ok()
 }
 
@@ -37,12 +40,15 @@ impl EntriesPerDay {
         let mut rows = Vec::new();
         let mut cursor = None;
         while rows.len() < MAX_LIST {
-            let Some(page) = read(&self.handle, self.history.timeline(&self.filter, cursor.as_ref())) else {
+            let Some(page) = read(
+                &self.handle,
+                self.history.timeline(&self.filter, cursor.as_ref()),
+            ) else {
                 break;
             };
-            rows.extend(page.items.iter().map(|e| {
-                json!({"day": e.at.format("%Y-%m-%d").to_string(), "program": e.program})
-            }));
+            rows.extend(page.items.iter().map(
+                |e| json!({"day": e.at.format("%Y-%m-%d").to_string(), "program": e.program}),
+            ));
             cursor = page.next;
             if cursor.is_none() {
                 break;
@@ -78,7 +84,12 @@ pub struct DigestPerProgram {
 
 impl DigestPerProgram {
     /// The digest of the entries that pass `filter`, lines at most `window_minutes` apart.
-    pub fn new(history: Arc<dyn History>, handle: Handle, filter: EntryFilter, window_minutes: u32) -> Self {
+    pub fn new(
+        history: Arc<dyn History>,
+        handle: Handle,
+        filter: EntryFilter,
+        window_minutes: u32,
+    ) -> Self {
         Self {
             history,
             handle,
@@ -93,13 +104,16 @@ impl DigestPerProgram {
         while rows.len() < MAX_LIST {
             let Some(page) = read(
                 &self.handle,
-                self.history.digest(&self.filter, self.window_minutes, cursor.as_ref()),
+                self.history
+                    .digest(&self.filter, self.window_minutes, cursor.as_ref()),
             ) else {
                 break;
             };
-            rows.extend(page.items.iter().map(|d| {
-                json!({"program": d.first.program, "changes": d.count})
-            }));
+            rows.extend(
+                page.items
+                    .iter()
+                    .map(|d| json!({"program": d.first.program, "changes": d.count})),
+            );
             cursor = page.next;
             if cursor.is_none() {
                 break;

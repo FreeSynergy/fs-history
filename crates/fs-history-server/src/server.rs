@@ -8,9 +8,9 @@ use std::sync::Arc;
 
 use capnp_rpc::new_client;
 use fs_history_core::{History, registry};
+use fs_interfaces::Unsupported;
 use fs_interfaces::history_capnp::history;
 use fs_interfaces::rpc::{read_object_id, run_to_end, unsupported};
-use fs_interfaces::Unsupported;
 use fs_types::describe::CatalogServer;
 
 use crate::errors::rpc_error;
@@ -143,11 +143,11 @@ impl history::Server for HistoryServer {
         _: history::TypesParams,
         mut results: history::TypesResults,
     ) -> Done {
-        let registry = registry().map_err(|e| capnp::Error::failed(format!("types.unsound: {e:?}")))?;
+        let registry =
+            registry().map_err(|e| capnp::Error::failed(format!("types.unsound: {e:?}")))?;
         results
             .get()
             .set_catalog(new_client(CatalogServer::new(registry)));
         Ok(())
     }
 }
-

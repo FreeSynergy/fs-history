@@ -97,7 +97,11 @@ impl DescribesType for DigestEntry {
     fn describe() -> TypeDescription {
         let l = "digest";
         let t = TypeDescription::new(DIGEST, PROGRAM, "AS2 Activity (grouped summary)", l)
-            .field(field(l, "first", BasicType::Reference).target(ENTRY).required())
+            .field(
+                field(l, "first", BasicType::Reference)
+                    .target(ENTRY)
+                    .required(),
+            )
             .field(field(l, "lastAt", BasicType::DateTime).required())
             .field(field(l, "count", BasicType::Text).required())
             .field(field(l, "kinds", BasicType::Text).multiple());

@@ -37,7 +37,11 @@ fn named_commands(md: &str) -> Vec<String> {
 fn every_requirement_row_has_a_command_in_the_table() {
     let md = requirements();
     let rows = requirement_rows(&md);
-    assert!(rows.len() >= 12, "the parser found only {} rows", rows.len());
+    assert!(
+        rows.len() >= 12,
+        "the parser found only {} rows",
+        rows.len()
+    );
     let table = table();
     for row in &rows {
         assert!(
@@ -65,16 +69,31 @@ fn every_named_requirement_command_is_in_the_table() {
 fn the_table_has_no_row_the_requirements_do_not_know() {
     let rows = requirement_rows(&requirements());
     for r in table().iter().filter(|r| !r.requirement.is_empty()) {
-        assert!(rows.iter().any(|x| x == r.requirement), "stale row {}", r.name);
-        assert!(!r.supported, "{} is asked for and cannot be supported without the core having it", r.name);
+        assert!(
+            rows.iter().any(|x| x == r.requirement),
+            "stale row {}",
+            r.name
+        );
+        assert!(
+            !r.supported,
+            "{} is asked for and cannot be supported without the core having it",
+            r.name
+        );
         assert!(!r.reason.is_empty());
     }
 }
 
 #[test]
 fn the_description_holds_every_command_of_the_table() {
-    for (name, d) in [(ENTRY, Entry::describe()), (DIGEST, DigestEntry::describe())] {
-        let want: Vec<&str> = table().iter().filter(|r| r.data_type == name).map(|r| r.name).collect();
+    for (name, d) in [
+        (ENTRY, Entry::describe()),
+        (DIGEST, DigestEntry::describe()),
+    ] {
+        let want: Vec<&str> = table()
+            .iter()
+            .filter(|r| r.data_type == name)
+            .map(|r| r.name)
+            .collect();
         let have: Vec<&str> = d.commands.iter().map(|c| c.name.as_str()).collect();
         assert_eq!(have, want, "{name}");
         d.validate().unwrap();
@@ -83,9 +102,17 @@ fn the_description_holds_every_command_of_the_table() {
 
 #[test]
 fn the_description_carries_the_flag_of_the_table() {
-    for (name, d) in [(ENTRY, Entry::describe()), (DIGEST, DigestEntry::describe())] {
+    for (name, d) in [
+        (ENTRY, Entry::describe()),
+        (DIGEST, DigestEntry::describe()),
+    ] {
         for r in table().iter().filter(|r| r.data_type == name) {
-            assert_eq!(d.find_command(r.name).unwrap().supported, r.supported, "{}", r.name);
+            assert_eq!(
+                d.find_command(r.name).unwrap().supported,
+                r.supported,
+                "{}",
+                r.name
+            );
         }
     }
 }
@@ -114,7 +141,12 @@ async fn supported_commands_are_capabilities_of_the_provider() {
     let caps = provider.capabilities();
     for r in table() {
         if r.supported {
-            assert!(caps.is_supported(r.capability), "{}: {}", r.name, r.capability);
+            assert!(
+                caps.is_supported(r.capability),
+                "{}: {}",
+                r.name,
+                r.capability
+            );
         } else if !r.capability.is_empty() {
             // `subscribe` is a stream: the core offers it, the command form cannot (see the reason).
             assert!(r.reason.contains("stream"), "{}", r.name);
@@ -126,7 +158,18 @@ async fn supported_commands_are_capabilities_of_the_provider() {
 #[test]
 fn field_names_follow_the_contract() {
     let e = Entry::describe();
-    for n in ["id", "at", "program", "kind", "object", "objectType", "name", "attributedTo", "context", "actor"] {
+    for n in [
+        "id",
+        "at",
+        "program",
+        "kind",
+        "object",
+        "objectType",
+        "name",
+        "attributedTo",
+        "context",
+        "actor",
+    ] {
         assert!(e.find_field(n).is_some(), "{n}");
     }
 }
