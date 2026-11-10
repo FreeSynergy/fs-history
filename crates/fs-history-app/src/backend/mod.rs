@@ -12,14 +12,17 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use chrono::{DateTime, SecondsFormat, Utc};
 use fs_admin_frontend::{Backend, BackendError, Outcome, Record, Values};
 use fs_history_core::commands::{self, DIGEST, ENTRY};
-use fs_history_core::{DigestEntry, Entry, EntryFilter, History};
+use fs_history_core::{EntryFilter, History};
 use fs_interfaces::Unsupported;
-use fs_objects::ObjectId;
-use fs_types::{Edit, RecordIssue, RecordProblem, TypeProblem};
+use fs_types::{Edit, RecordIssue, RecordProblem};
 use tokio::runtime::Handle;
+
+mod convert;
+use convert::{
+    digest_matches, digest_record, entry_matches, entry_record, filter_of, first, one_id,
+};
 
 /// Most records one `list` reads (pages of the core are followed up to this many), so a window never holds the whole
 /// history. The list says nothing when it is cut; the filter is how a person narrows it.
@@ -231,110 +234,5 @@ impl Backend for HistoryBackend {
             // `BackendError` has no variant for "not possible": the closest is "no such command".
             Err(RunError::Unsupported(_)) => Err(BackendError::NotFound),
         }
-    }
-}
-
-fn first<'a>(v: &'a Values, key: &str) -> &'a str {
-    v.get(key)
-        .and_then(|l| l.iter().map(|s| s.trim()).find(|s| !s.is_empty()))
-        .unwrap_or("")
-}
-
-fn bad(field: &str) -> BackendError {
-    BackendError::Rejected(vec![RecordIssue {
-        field: field.to_owned(),
-        index: 0,
-        problem: RecordProblem::Value(TypeProblem::BadDateTime),
-    }])
-}
-
-fn time(v: &Values, key: &str) -> Result<Option<DateTime<Utc>>, BackendError> {
-    match first(v, key) {
-        "" => Ok(None),
-        t => DateTime::parse_from_rfc3339(t)
-            .map(|d| Some(d.with_timezone(&Utc)))
-            .map_err(|_| bad(key)),
-    }
-}
-
-/// The record a command works on: the id the frontend passes, else the `entry` input (a caller without a record).
-fn one_id(record: Option<&str>, input: &Values) -> Result<ObjectId, BackendError> {
-    record
-        .unwrap_or_else(|| first(input, "entry"))
-        .parse()
-        .map_err(|_| BackendError::NotFound)
-}
-
-/// The filter members of a command input (`from`, `to`, `program`, `person`, `objectType`, `context`, `object`).
-fn filter_of(v: &Values) -> Result<EntryFilter, BackendError> {
-    let object = match first(v, "object") {
-        "" => None,
-        o => Some(o.parse().map_err(|_| BackendError::NotFound)?),
-    };
-    Ok(EntryFilter {
-        from: time(v, "from")?,
-        to: time(v, "to")?,
-        program: first(v, "program").to_owned(),
-        person: first(v, "person").to_owned(),
-        object_type: first(v, "objectType").to_owned(),
-        context: first(v, "context").to_owned(),
-        object,
-    })
-}
-
-fn entry_matches(e: &Entry, term: &str) -> bool {
-    term.is_empty()
-        || [&e.name, &e.program, &e.kind, &e.object_type, &e.context]
-            .iter()
-            .any(|f| f.to_lowercase().contains(term))
-}
-
-fn digest_matches(d: &DigestEntry, term: &str) -> bool {
-    entry_matches(&d.first, term) || d.kinds.iter().any(|k| k.to_lowercase().contains(term))
-}
-
-fn stamp(t: DateTime<Utc>) -> String {
-    t.to_rfc3339_opts(SecondsFormat::Secs, true)
-}
-
-fn put(values: &mut Values, key: &str, value: &str) {
-    if !value.is_empty() {
-        values.insert(key.to_owned(), vec![value.to_owned()]);
-    }
-}
-
-fn entry_values(e: &Entry) -> Values {
-    let mut v = Values::new();
-    put(&mut v, "id", &e.id.to_string());
-    put(&mut v, "at", &stamp(e.at));
-    put(&mut v, "program", &e.program);
-    put(&mut v, "kind", &e.kind);
-    put(&mut v, "object", &e.object.to_string());
-    put(&mut v, "objectType", &e.object_type);
-    put(&mut v, "name", &e.name);
-    put(&mut v, "attributedTo", &e.attributed_to);
-    put(&mut v, "context", &e.context);
-    put(&mut v, "actor", &e.actor);
-    v
-}
-
-fn entry_record(e: &Entry) -> Record {
-    Record {
-        id: e.id.to_string(),
-        values: entry_values(e),
-    }
-}
-
-fn digest_record(d: &DigestEntry) -> Record {
-    let mut v = Values::new();
-    put(&mut v, "first", &d.first.id.to_string());
-    put(&mut v, "lastAt", &stamp(d.last_at));
-    put(&mut v, "count", &d.count.to_string());
-    if !d.kinds.is_empty() {
-        v.insert("kinds".to_owned(), d.kinds.clone());
-    }
-    Record {
-        id: d.first.id.to_string(),
-        values: v,
     }
 }
