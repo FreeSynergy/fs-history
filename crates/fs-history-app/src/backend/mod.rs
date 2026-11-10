@@ -21,7 +21,7 @@ use tokio::runtime::Handle;
 
 mod convert;
 use convert::{
-    digest_matches, digest_record, entry_matches, entry_record, filter_of, first, one_id,
+    bad, digest_matches, digest_record, entry_matches, entry_record, filter_of, first, one_id,
 };
 
 /// Most records one `list` reads (pages of the core are followed up to this many), so a window never holds the whole
