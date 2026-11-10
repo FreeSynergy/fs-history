@@ -625,6 +625,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "fs-history-server"
+version = "0.0.1"
+dependencies = [
+ "capnp",
+ "capnp-rpc",
+ "fs-history-core",
+ "fs-interfaces 0.0.1 (git+https://github.com/FreeSynergy/fs-interfaces?tag=v0.0.8)",
+ "fs-objects",
+ "fs-types",
+ "tempfile",
+ "tokio",
+]
+
+[[package]]
 name = "fs-hub"
 version = "0.0.1"
 source = "git+https://github.com/FreeSynergy/fs-hub?tag=v0.0.1#d80026896403641e55eabf0f79346f92ba06f69d"
@@ -701,7 +715,15 @@ version = "0.0.1"
 source = "git+https://github.com/FreeSynergy/fs-interfaces?tag=v0.0.8#8d9cc469cfc2fead4d0df2e66707e3996e95bf35"
 dependencies = [
  "capnp",
+ "capnp-rpc",
+ "chrono",
+ "fs-objects",
+ "futures",
  "idna",
+ "rustix 1.1.6",
+ "tokio",
+ "tokio-util",
+ "uuid",
 ]
 
 [[package]]
@@ -728,6 +750,7 @@ version = "0.0.1"
 source = "git+https://github.com/FreeSynergy/fs-interfaces?tag=v0.0.8#8d9cc469cfc2fead4d0df2e66707e3996e95bf35"
 dependencies = [
  "capnp",
+ "capnp-rpc",
  "chrono",
  "fs-interfaces 0.0.1 (git+https://github.com/FreeSynergy/fs-interfaces?tag=v0.0.8)",
  "geo-uri",

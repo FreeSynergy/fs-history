@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/fs-history-core", "crates/fs-history-hub"]
+members = ["crates/fs-history-core", "crates/fs-history-hub", "crates/fs-history-server"]
 
 [workspace.package]
 version = "0.0.1"
