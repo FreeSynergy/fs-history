@@ -19,6 +19,8 @@
     clippy::module_name_repetitions
 )]
 
+pub mod commands;
+pub mod describe;
 pub mod digest;
 mod error;
 mod feed;
@@ -30,6 +32,7 @@ mod source;
 pub mod traits;
 mod unsupported;
 
+pub use describe::{PROGRAM, registry};
 pub use error::{Error, Result};
 pub use feed::{Feed, FeedEvent, Subscription};
 pub use model::{
