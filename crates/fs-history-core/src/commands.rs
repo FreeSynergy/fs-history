@@ -4,10 +4,9 @@
 //! [`unsupported_commands`], for the backend's refusal and for the test against `requirements.md`. A command that is
 //! missing in the core stays in the table with `supported = false`; it is never left out (coordinator rule, thread R).
 //!
-//! The wire cannot carry the flag yet: `CommandDescription` of `fs-types` v0.0.8 has no `supported` member (thread T
-//! adds it). Until then the description lists every command, and a frontend learns what is missing from
-//! [`unsupported_commands`] and from the refusal of the backend (`DESIGN.md`, "Unsupported"). The place where the
-//! flag moves into the description is marked `SWITCH` in `describe.rs`.
+//! The description carries the flag (`CommandDescription::supported`, fs-types v0.0.11): every command is listed, a
+//! missing one locked. The backend refuses it with a typed `Unsupported` all the same.
+
 
 use fs_types::{BasicType, CommandKind};
 
@@ -148,12 +147,11 @@ const OF_PEOPLE: &str = "a command on contacts, listed here by requirements.md; 
 pub fn table() -> Vec<CommandRow> {
     let entry = FieldSpec::new("entry", BasicType::Reference).to(ENTRY);
     let mut find = row(ENTRY, "find", CommandKind::Find, "history.read");
-    find.input = filter();
-    find.input.push(FieldSpec::new("cursor", BasicType::Text));
-    find.result = vec![
-        FieldSpec::new("entries", BasicType::Reference).to(ENTRY).multiple(),
-        FieldSpec::new("next", BasicType::Text),
-    ];
+    // The standard `find` (rule of types.capnp): `term` (empty = all) and `items`; the filter members are further
+    // inputs. Paging with a cursor is part of the call, not a field.
+    find.input = vec![FieldSpec::new("term", BasicType::Text)];
+    find.input.extend(filter());
+    find.result = vec![FieldSpec::new("items", BasicType::Reference).to(ENTRY).multiple()];
     let mut get = row(ENTRY, "get", CommandKind::Find, "history.read");
     get.input = vec![entry.required()];
     get.result = vec![FieldSpec::new("found", BasicType::Reference).to(ENTRY)];
@@ -171,13 +169,10 @@ pub fn table() -> Vec<CommandRow> {
     subscribe.supported = false;
     subscribe.reason = "a stream of entries; the core has it, but a command answers once (no request/response form yet)";
     let mut digest = row(DIGEST, "find", CommandKind::Find, "history.digest");
-    digest.input = filter();
+    digest.input = vec![FieldSpec::new("term", BasicType::Text)];
+    digest.input.extend(filter());
     digest.input.push(FieldSpec::new("windowMinutes", BasicType::Text).required());
-    digest.input.push(FieldSpec::new("cursor", BasicType::Text));
-    digest.result = vec![
-        FieldSpec::new("digests", BasicType::Reference).to(DIGEST).multiple(),
-        FieldSpec::new("next", BasicType::Text),
-    ];
+    digest.result = vec![FieldSpec::new("items", BasicType::Reference).to(DIGEST).multiple()];
 
     let mut rows = vec![find, get, forget, forget_matching, subscribe, digest];
     let mut add = |mut r: CommandRow, input: Vec<FieldSpec>, result: Vec<FieldSpec>| {
@@ -188,9 +183,11 @@ pub fn table() -> Vec<CommandRow> {
     let person = FieldSpec::new("person", BasicType::Reference);
     // Optional table of requirements.md, in its order.
     add(
-        missing(ENTRY, "recordPlace", CommandKind::Change,
-            "Place and weather recorded with an entry", "", NOT_BUILT),
-        vec![entry.required(), FieldSpec::new("place", BasicType::Place), FieldSpec::new("weather", BasicType::Text)],
+        // A `change` takes an `Edit` and no input list (rule of types.capnp): the place and weather would be two
+        // more fields of the entry, edited with it.
+        missing(ENTRY, "change", CommandKind::Change,
+            "Place and weather recorded with an entry", "", "an entry is a derived summary and cannot be edited; place and weather are proposed fields"),
+        vec![],
         vec![],
     );
     add(
@@ -238,7 +235,7 @@ pub fn table() -> Vec<CommandRow> {
         vec![FieldSpec::new("duplicates", BasicType::Reference).multiple()],
     );
     add(
-        missing(ENTRY, "contactMerge", CommandKind::Change, merge_req, "contact.merge", OF_PEOPLE),
+        missing(ENTRY, "contactMerge", CommandKind::Other, merge_req, "contact.merge", OF_PEOPLE),
         vec![person.required(), FieldSpec::new("with", BasicType::Reference).required().multiple()],
         vec![],
     );
@@ -250,7 +247,7 @@ pub fn table() -> Vec<CommandRow> {
         vec![],
     );
     add(
-        missing(ENTRY, "contactPromote", CommandKind::Change,
+        missing(ENTRY, "contactPromote", CommandKind::Other,
             "Keep addresses of people only written to apart from the address book until promoted (`contact.promote`)",
             "contact.promote", OF_PEOPLE),
         vec![person.required()],

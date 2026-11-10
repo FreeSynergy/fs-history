@@ -82,6 +82,15 @@ fn the_description_holds_every_command_of_the_table() {
 }
 
 #[test]
+fn the_description_carries_the_flag_of_the_table() {
+    for (name, d) in [(ENTRY, Entry::describe()), (DIGEST, DigestEntry::describe())] {
+        for r in table().iter().filter(|r| r.data_type == name) {
+            assert_eq!(d.find_command(r.name).unwrap().supported, r.supported, "{}", r.name);
+        }
+    }
+}
+
+#[test]
 fn the_unsupported_commands_are_listed_and_the_supported_are_not() {
     let u = unsupported_commands(ENTRY);
     assert!(u.contains(&"subscribe") && u.contains(&"contactMerge") && u.contains(&"onThisDay"));

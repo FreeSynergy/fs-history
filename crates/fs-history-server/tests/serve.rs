@@ -77,6 +77,10 @@ async fn types_serves_the_catalog_with_every_command() {
         for name in ["find", "get", "forget", "forgetMatching", "subscribe", "contactMerge", "onThisDay"] {
             assert!(entry.find_command(name).is_some(), "{name}");
         }
+        // the flag travels on the wire: locked ones are listed, not hidden
+        assert!(entry.find_command("find").unwrap().supported);
+        assert!(!entry.find_command("subscribe").unwrap().supported);
+        assert!(!entry.find_command("contactMerge").unwrap().supported);
         assert_eq!(entry.find_command("forget").unwrap().kind, CommandKind::Delete);
         assert!(back.get("Digest").unwrap().find_command("find").is_some());
         assert!(back.unresolved_targets().is_empty());

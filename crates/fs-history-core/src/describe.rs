@@ -62,9 +62,8 @@ fn describe_command(type_label: &str, r: &CommandRow) -> CommandDescription {
     for f in &r.result {
         c = c.result(describe_spec(&key, f));
     }
-    // SWITCH: set .supported(r.supported) when fs-types has it. Until then every command is in the description and the
-    // flag is only in the table (`commands::unsupported_commands`) and in the refusal of the backend.
-    c
+    // Every command is in the description; one the core does not have is listed locked (`supported = false`).
+    if r.supported { c } else { c.unsupported() }
 }
 
 fn with_commands(mut t: TypeDescription, name: &str, label: &str) -> TypeDescription {
